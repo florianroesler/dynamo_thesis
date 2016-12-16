@@ -1,0 +1,61 @@
+\documentclass{scrbook} % <= Druckversion: "scrbook", Bildschirmversion: "scrreprt"
+\newcommand\bcor{8mm} % <= falls nötig, Bindungskorrektur für Druckversion (ohne Layoutzerstörung bei Anpassung)
+\usepackage{osm-thesis}
+
+% ABOUT
+\newcommand{\hpitype}{Master Thesis}
+\newcommand{\hpiauthor}{Florian Rösler}
+\newcommand{\hpititle}{Dynamic OpenCL - Distributed Computing on Cloud Scale}
+\newcommand{\hpititleother}{Dynamic OpenCL - Verteiltes Rechnen für Rechenzentren mit angebundenen Clouds} % <= das Studienreferat verlangt einen deutschen UND englischen Titel
+\newcommand{\hpisupervisor}{Prof.\,Dr.\,Andreas Polze, Max Plauth}
+\newcommand{\hpichair}{Fachgebiet für Betriebssysteme und Middleware}
+\newcommand{\hpiexternalsupervisor}{}
+\newcommand{\hpiexternal}{}
+\newcommand{\hpidate}{\today}
+
+% DOCUMENT
+%\KOMAoption{draft}{true} % <= z.B. zum "Debuggen" der Overfull-Boxes
+\bibliography{bibliography}
+
+\begin{document}
+	\selectlanguage{english}
+
+	% Einband
+	\pagenumbering{alph}
+	\ifisbook\include{content/coverpage}\fi
+	\ifisbook\cleardoubleemptypage\fi
+
+	% (Haupt-)Titelseite, Abstract, ggf. Danksagung & Inhaltsverzeichnis
+	\pagenumbering{roman}
+	\include{content/titlepage}
+	\ifisbook\cleardoubleemptypage\fi\include{content/abstract}
+
+	\tableofcontents
+	\cleardoublepage
+
+	% Textteil
+	\pagenumbering{arabic}
+	\include{content/introduction}
+	
+	\include{content/related}
+
+	\include{content/basics}
+	
+	\include{content/main_part}
+
+	\include{content/conclusion}
+
+
+	% Bibliographie
+	\addcontentsline{toc}{chapter}{\refname}
+	\printbibliography
+
+
+	% ggf. Anhang
+	\appendix\include{content/abstract_german}
+	\appendix\include{content/appendix} % example
+
+	% Eigenständigkeitserklärung
+	\ifisbook\pagestyle{plain}\cleardoubleemptypage\include{content/disclaimer}\fi
+
+\end{document}

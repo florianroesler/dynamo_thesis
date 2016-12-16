@@ -1,0 +1,114 @@
+\chapter{Related Work}
+\section{Distribution Methods}
+
+\subsection{OpenMP}
+OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program.
+
+\subsection{MPI}
+Although OpenMP is a very powerful tool for parallelization on a single machine, in order to write larger scale software, communications across multiple machines are necessary. One standard tool to achieve this is MPI.
+MPI offers bindings to many languages and extends such by functions to identify a process and send as well as receive messages.
+
+\subsection{MapReduce}
+Due to its simple programming model, which mainly consists of a Map and a Reduce phase (there are many other phases in its implementations) it is a favoured approach for large clusters. Its most prominent implementation is Hadoop MapReduce, which in combination with Hadoop Distributed File System, is especially applicable for data intense jobs like log analysis and more.
+
+\section{OpenCL Single Machine Distribution}
+
+\subsection{Achieving a Single Compute Device Image in OpenCL for Multiple GPUs\cite{Kim_2011}}
+Framework that distributes workloads across multiple GPUs on a single machine. The memory of all included GPUs is consolidated in a single virtual memory space.
+Instead of launching the original OpenCL kernels, the kernels translated to CUDA and launched from the CUDA platform. In order to achieve an improved distribution, the OpenCL code is first translated to C to sample the memory access patterns.
+
+Its distribution method is based on the memory consistency model of OpenCL, which states that "an update to a global memory location by a work-group does not need to be visible to other work-groups in the same kernel index space during the kernel execution" and a general independence of the execution of work groups (except memory barriers).
+
+In order to reduce data transfers, not all data is transferred to every device but only the minimal necessary data for correct execution of every distributed work group. This is achieved by sampling the memory access and thus receiving a lower and upper memory bound of used memory addresses.
+
+\subsection{SOCL\cite{socl}}
+SOCL is a framework offering the following key points:
+\begin{itemize}
+    \item Schedule and load balance kernels across multiple devices
+    \item Manage memory transfers and coherency
+    \item Dynamically adapt granularity of kernels
+\end{itemize}
+
+SOCL acts as a middleware with its own OpenCL ICD utilizing other installed ICDs on a machine. Thus, it is able to implement functionalities such as shared command queues for multiple devices by hiding the still remaining split command queues for each device. Through this method, load balancing techniques can also be applied.
+
+In order to allow dynamic granularity adaptions, programmers have to supply the framework with a function that indicates how to divide the kernel with its respective data.
+
+\subsection{Static multi-device load balancing for OpenCL\cite{delalama_2012}}
+In this paper, an approach for executing a single kernel on multiple devices as well as a load balancing mechanism based on each devices's computing power is presented.
+
+Instead of splitting the data (input buffers) into smaller parts, it replicates input buffers across the utilized devices and merges back the resulting output buffers.
+
+As their future work they announce the development of dynamically adaptable load balancing algorithms.
+
+
+\subsection{A multi-GPU Programming Library for Real-Time Applications\cite{mgpu}}
+The proposed framework called MGPU promises to support CUDA as well as OpenCL to allow execution of a Kernel on multiple GPUs within a single machine. It's targeted at real time applications like MRI scan data, which would not inherently benefit from cluster setups due to latency penalties.  In its current version MGPU focuses on CUDA due to its richer feature set.
+
+MGPU employs a container architecture, which abstracts the device memory to a vector in main memory. Communication is done through MPI-based API.
+
+
+\subsection{STEPOCL\cite{stepocl}}
+
+This paper presents a framework called STEPOCL, which offers programming multi-device applications in their own developed domain specific language. Their key promoted values are linear performance scaling with increasing devices as well as comparable performance to hand written OpenCL applications.
+
+STEPOCL takes an OpenCL Kernel with the following configurations:
+\begin{itemize}
+    \item Data layout to split data among devices
+    \item Tiling configuration depending on device type
+    \item Meta control flow of the application (loops etc.)
+\end{itemize}
+
+During compilation, STEPOCL identifies available devices that it can distribute the submitted workloads to. The distribution of splits is done dynamically through a profiling mechanism that takes into account the performance of each device during the previous iteration of a Kernel execution. Therefore it is especially meaningful for iterative algorithms like N-Body or k-Means.
+
+\subsection{Fluidic Kernels\cite{fluidic}}
+
+The paper proposes distributing Kernels among the CPU and GPU of a machine. They showcase two workloads that benefit more from either CPU or GPU. In order to support dynamic executions each Kernel is launched each on the CPU and GPU, with the GPU executing the whole OpenCL range. The CPU starts execution of work groups from the other end of the range in so called subkernels. After each finished subkernel, the CPU reports to the GPU the finished work group IDs. During execution of each work group, the GPU checks whether the current work group has finished yet and can therefore identify when it has reached work groups that have already been computed by the CPU and thus finish its execution.
+
+\subsection{Qilin\cite{qilin}}
+
+Qilin tries to solve the problem of distributing a workload among a CPU and GPU by using adaptive mapping for Intel Threading Building Blocks and CUDA. It uses empirical data to predict optimal distribution loads from previous executions of a program.
+
+When it encounters a program for the first time, it splits the work evenly among CPU and GPU, which each split the their parts into smaller subparts. For each subpart it records the execution time that are then used for curve fitting to find the optimal distribution ratio.
+
+\section{OpenCL Cluster Distribution}
+
+\subsection{VirtualCL\cite{virtualcl}}
+
+VirtualCL wraps the local OpenCL implementation on a host machine and forwards the API calls to previously defined remote machines, which run a VirtualCL daemon that receives calls from the host node. Thus, VirtualCL creates the impression that the host machine would have all devices in the cluster installed locally.
+
+The authors show that network bandwidth and latency are the main bottlenecks of the approach but that long and compute intense kernels perform very well.
+
+VirtualCL offers an extension, called SuperCL, which is aimed at reducing network transfers by allowing multiple kernels being submitted to a remote node for serial execution. When these kernels depend on each other, the results are not transferred back and forth but stored in temporary buffers. It also supports more complex use cases like alternating iterative kernels.
+
+\subsection{dOpenCL\cite{dopencl}}
+
+Similar to VirtualCL, dOpenCL forwards OpenCL APIs to remote devices to create the image of a single machine, which has a multitude of devices installed, even when these are in fact only available through network.
+
+dOpenCL offers a device manager, which keeps track of utilization of devices within the cluster and schedules submitted kernels accordingly.
+
+\subsection{SnuCL\cite{snucl}}
+
+SnuCL provides a mechanism to access many heterogenous compute devices as if they were available in a single machine. Besides OpenCL, SnuCL also supports CUDA commands, which are forwarded to remote machines and executed there. Additionally, SnuCL abstracts CPU cores as a compute unit each and transforms OpenCL code to C code, which is then executed on top of a thread of each core.
+
+Furthermore, SnuCL introduces a virtual global memory, in which buffers may be shared among devices. It manages the consistency among shared buffers and attempts to minimize copy operations throughout the execution.
+
+\subsection{DistCL\cite{distcl}}
+DistCL aims at merging multiple GPUs as a single virtual OpenCL device. DistCL creates a single context with one command queue that represents the aggregated device. For the purpose of distribution, DistCL splits Kernels into multiple Kernels with their respective subranges. In order to know, which data is accessed by a subrange, programmers have to supply a meta-function that determines the access pattern. Based on that function DistCL can only transfer relevant data to a device that executes a subrange.
+
+\subsection{MultiCL\cite{multicl}}
+
+MultiCL is built on top of SnuCL and promises to schedule command queues approprietly among multiple devices in a cluster. They offer a round robin approach as well as an autofit mechanism. When queueing a computation, a flag can be provided, which labels the assumed bottleneck like computation, memory, I/O or iterative.
+
+In their static scheduling approach they simply profile all available devices and select the best fitting device based on the flagged bottleneck property. In their dynamic scheduling algorithm they apply different mechanisms based on the flag:
+
+\begin{description}
+\item [Iterative] Cache previous Kernel execution times
+\item [Compute-Intensive] Minikernel Profiling
+\item [I/O-intensive] Data caching and minimized transfer operations
+\end{description}
+
+\subsection{rCUDA\cite{rcuda}}
+
+rCUDA aims to reduce the number of GPU accelerators in a cluster by not installing one in every machine but instead enable sharing the accelerators across the network. It also uses API forwarding to execute CUDA commands on the remote server and retrieve the respective result.
+
+Their main focus when evaluating performance lies on power savings. When reducing the number of accelerators by 90\%, they were able to achieve a 20\% decrease in power consumption. Still, they are aware that this reduction can lead to a significant performance degradation depending on the running applications within the cluster.
