@@ -5,12 +5,14 @@
 As of today, there are various available approaches for programmers to distribute workloads across multiple devices within a single machine or even among multiple machines belonging to a cluster. Enhancing single threaded code to a multithreaded program that runs on multiple machines in parallel adds several layers of complexity to a project, which may introduce errors and increased maintenance efforts.
 
 Frameworks like Open Multi-Processing, CUDA or OpenCL allow for the parallel utilization of resources within a machine but in return require programmers to learn extensive APIs or write code in low level languages like C.
-At the same time cluster distribution approaches like Hadoop MapReduce require extended configuration management of the participating nodes. MapReduce as well as other techniques like the Message Passing Interface also add a layer of complexity to the written program code that is entirely focused on synchronizing the distributed parts. 
+At the same time cluster distribution approaches like Hadoop MapReduce require extended configuration management of the participating nodes. MapReduce as well as other techniques like the Message Passing Interface also add a layer of complexity to the written program code that is entirely focused on synchronizing the distributed parts.
 Ultimately, the combination of both levels of parallelization may lead to additional problems, which distract programmers from their original intentions.
+
+While the creation of distributed algorithms poses a deep problem on its own, running these programs in a cost efficient manner respresents another elaborate task. Clusters dedicated to running computational jobs in a shared environment should have as little underutilization as possible as idle resources still draw significant power and contribute to the total cost of ownership. Therefore the dynamic adaption of resources to the actual needs is a challenge with monetary benefits. As a result, cloud services have seen a steady increase in revenue due to their flexible billing options that allow booking resources for short amounts of time. Still, a pure cloud approach may introduce several disadvantages like higher costs or reduced performance due to geographical distances between the user and the utilized resources. Accordingly, a hybrid approach appears benefitial, providing a steady baseline of performance with local hardware. In the case of a peaks additional resources might be booked from an external provider, which allows for lower costs and better quality of service during times with high resource demands.
 
 \section{Goals}
 
-The main goal of this research is to provide a framework that assists programmers to distribute their programs within a cluster. Thus, the following requirements are defined in order to streamline the development:
+The main goal of this research is to provide a framework that assists programmers to distribute their programs within a hybrid cluster. Thus, the following requirements are defined in order to streamline the development:
 
 \begin{description}[style=nextline]
     \item [Heterogeneity]
@@ -21,12 +23,14 @@ The main goal of this research is to provide a framework that assists programmer
 
     \item [Scalable Speed]
     It is desirable that the user is able to scale the execution speed of their respective task. Therefore it must be possible to add or remove resources to or from a workload without interrupting the overall execution. With that ability the framework would be enabled to handle burst scenarios as well as save resources in the case of continuous low computational demand.
-    
+
     \item [Ease of Programming]
     The introduced framework should provide programmers with an easy to use distribution mechanism without adding noticeable overhead to their development process. Preferably the resulting code should be created in a modern high level language on a high abstraction level.
 
     \item [Workload Diversity]
-    While the submitted workloads could differ in size and required resources they might also have different hardware requirements. For instance, several workloads within the system could be optimized for CPUs and others for GPUs. The framework should support the execution of these workload types and additionally optimize the distribution across the hardware from a global system view.  
-    
-\end{description}
+    While the submitted workloads could differ in size and required resources they might also have different hardware requirements. For instance, several workloads within the system could be optimized for CPUs and others for GPUs. The framework should support the execution of these workload types and additionally optimize the distribution across the hardware from a global system view.
 
+    \item [Location Optimized Scheduling]
+    Aside from various hardware that workloads can be optimized for, running programs on a hybrid cloud adds the issue of networking distances between the local cluster and the external cloud. Thus, certain tasks may see performance improvements when run locally instead of being initially sent to external resources. It is desirable to take these factors into account and consider network distances and bottlenecks during scheduling descisions.
+
+\end{description}
