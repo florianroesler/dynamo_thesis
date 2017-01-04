@@ -1,2 +1,25 @@
 \chapter{Basics}
+
+\section{Distribution Methods}
+
+\subsection{OpenMP}
+OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program.
+
+\subsection{MPI}
+Although OpenMP is a very powerful tool for parallelization on a single machine, in order to write larger scale software, communications across multiple machines are necessary. One standard tool to achieve this is MPI.
+MPI offers bindings to many languages and extends such by functions to identify a process and send as well as receive messages.
+
+\subsection{MapReduce}
+Due to its simple programming model, which mainly consists of a Map and a Reduce phase (there are many other phases in its implementations) it is a favoured approach for large clusters. Its most prominent implementation is Hadoop MapReduce, which in combination with Hadoop Distributed File System, is especially applicable for data intense jobs like log analysis and more.
+
+\section{CUDA}
+
+What is CUDA and what is it good for.
+
 \section{OpenCL}
+
+What is OpenCL and how does it differ from CUDA. Explain why it is not slower even though the general public thinks so.
+
+\section{Aparapi}
+
+Explain Aparapi's architecture and results.

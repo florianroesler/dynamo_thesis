@@ -1,0 +1,68 @@
+
+\chapter{Dynamic OpenCL}
+
+\section{Distribution Approach}
+
+Choice of distribution -> why not MPI, MapReduce etc.
+
+Choice of Framework -> SnuCL vs VirtualCL vs dOpenCL
+
+Show Benchmarks of dOpenCL
+
+\section{High-Level Abstraction}
+
+Reason why we need the abstraction
+
+Showcase Aparapi
+
+Explain changes made to connect dopencl and aparapi
+
+show benchmark of connection
+
+\section{Hybrid Cloud}
+
+explain the connection of between a local cloud and an external cloud
+
+use amazon as example
+
+also consider security
+
+\section{Job Design}
+
+show own code and what that means for programming workflow
+
+design considerations and limitations of Aparapi
+
+\section{Scalable Speed}
+
+introduce general scaling idea based on the job design
+
+show the necessary changes towards dopencl and aparapi
+
+\section{Optimized Scheduling}
+
+explain general scheduling structure of dynamo
+
+bring out the fancy stuff like performance history based approach and based on location of the machine
+
+how about simplex?
+
+\section{Exemplary Use Cases}
+
+pure shared local cloud without scaling options
+
+pure remote cloud with the server running in the cloud itself
+
+hybrid cloud
+
+use the framework as a library for a job itself
+
+\section{Limitations}
+
+show bottlenecks (memory of central machine and network in total)
+
+jobs that make sense
+
+job design limitations
+
+\section{Showcase: Dynamo Server}
