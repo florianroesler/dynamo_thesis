@@ -1,6 +1,7 @@
 \documentclass{scrbook} % <= Druckversion: "scrbook", Bildschirmversion: "scrreprt"
 \newcommand\bcor{8mm} % <= falls nötig, Bindungskorrektur für Druckversion (ohne Layoutzerstörung bei Anpassung)
 \usepackage{osm-thesis}
+\usepackage{listings}
 
 % ABOUT
 \newcommand{\hpitype}{Master Thesis}
@@ -37,9 +38,13 @@
 	\pagenumbering{arabic}
   \include{content/introduction}
   \include{content/basics}
+
+
   \include{content/related}
+
 	\include{content/main}
   \include{content/evaluation}
+  \include{content/demonstration}
 	\include{content/conclusion}
 
 

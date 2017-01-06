@@ -14,11 +14,58 @@ Due to its simple programming model, which mainly consists of a Map and a Reduce
 
 \section{CUDA}
 
-What is CUDA and what is it good for.
+CUDA is an API released by NVIDIA, which enables NVIDIA GPUs to be used for general purpose computing. As modern GPUs are comprised of hundreds or even thousands of streaming processors, data parallel algorithms can make extensive use of the CUDA infrastructure.
 
 \section{OpenCL}
 
-What is OpenCL and how does it differ from CUDA. Explain why it is not slower even though the general public thinks so.
+OpenCL is a framework that stands in direct competition with CUDA. It was initially proposed by Apple but is now maintained by the Khronos Group, which consists of a multitude of companies like AMD, Intel, NVIDIA and more. Unlike CUDA, OpenCL is not limited to NVIDIA GPUs but supports various device types and vendors. As such OpenCL programs may be executed on CPUs, GPUs, FPGAs and DSPs. Prerequisite for the execution of OpenCL code on a machine is the presence of the OpenCL ICD for a targeted device. Such ICDs must conform with the specifications released by the Khronos Group. As of today, many implementations of the specifications exist by many vendors like AMD, NVIDIA, Intel, Apple, ARM, Xilinx and others.
+
+One of the most important definitions within the OpenCL standard is the introduction of its programming model as well as the memory structure:
+
+\begin{description}[style=nextline]
+    \item [Programming Model]
+    OpenCL programs, called Kernels are executed in parallel on devices, namely for each work-item, which is the smallest partial unit of a submitted task. For example a work-item could be an element of an array. Work-items are bundled in work-groups like smaller subdivisions of an array, which allow for synchronization within the group. As such all work-items within a work-group are handled by the same Compute Unit (abbrv. CU), which for instance could be a CPU core.
+
+    During execution multiple work-items are processed in parallel in so called wavefronts (AMD terminology) or warps (NVIDIA terminology). From here on the term wavefront will be utilized. Work-items within a wavefront are executed in lockstep, which means that all branches like both paths of if-conditions are run for very item, even when only a single work-item diverges. Therefore conditional constructs may lead to significant performance penalties.
+
+    Wavefronts in modern AMD GPUs contain 64 work-items of which 16 are handled in parallel and the whole wavefront is executed within 4 clock cycles. Therefore work-groups should have a size multiple of 64 in order to evenly fill the wavefronts per CU. Having many wavefronts assigned per CU also enables OpenCL to hide latencies for required memory accesses. Whenever a wavefront needs to access memory, which would stall its threads, the CU switches to another wavefront and continues executing it until it also needs to access memory or finishes execution.
+
+    \item [Memory Model]
+    In its standard, OpenCL defines four different memory levels:
+    \begin{description}[align=left]
+      \item [private] Only accessible by a work-item itself.
+      \item [local] Accessible by work-items within a work-group.
+      \item [global] Can be read by and written to by the host as well as all work-items.
+      \item [constant] Like global memory but read-only.
+    \end{description}
+
+    All of the available memory levels have different sizes, depending on the utilized device and also require different clock cycles per access. For example, reading data from local memory can be a magnitude faster than from global memory but global memory offers far more space and allows for synchronization among all work-groups.
+
+\end{description}
+
+OpenCL Kernels are written in OpenCL C, which is a superset of C99, containing additional keywords that are related to memory access and synchronization. Such Kernels have to be started from so called host code, which runs on the machine that contains the targeted devices. The host code is usually written in C or C++ as the standard offers APIs for these languages. Still, third parties offer bindings for other languages. The following list contains some available language bindings:
+
+\begin{description}[align=left]
+  \item [Java] JOCL, Aparapi
+  \item [.NET] OpenCL.NET, Cloo
+  \item [Python] PyOpenCL, PyCL
+  \item [Ruby] Ruby-OpenCL
+\end{description}
+
+While the OpenCL standard enables the execution of identical code on heterogenous platforms, certain limitations still apply based on the capabilities of the utilized devices. For instance, code that uses the double data type can only be sucessfully run on devices that offer that feature. The following kernel code describes the addition of two arrays:
+
+\begin{lstlisting}[language=C++]
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
+__kernel void run(__global double *a, __global double *b, __global double *c){
+  int i = get_global_id(0);
+  c[i]  = a[i] + b[i];
+}
+\end{lstlisting}
+
+Executing this snippet with its corresponding host code on an early 2015 Macbook Air may lead to two different results. On the one hand, execution on the built-in i5-5250U CPU will correctly add the two provided arrays and save the result in a third array. On the other hand the included Iris Graphics 6100 GPU will produce an error as it does not support the required OpenCL FP64 extension.
+
+While OpenCL supports more device types and vendors it seems questionable whether having a general programming model comes with the price of performance penalties when compared to the specialized CUDA platform. Karimi, Dickson and Hamze have shown that CUDA code may be ported to OpenCL with only few modifications but will run between 16\% and 67\% slower depending on the problem size of their implemented Monte Carlo simulation\cite{performance_comparison}. On the opposite, Fang and Varbanescu and Sips have come to the conclusion that such performance gaps are influenced by the differences between the programming models and may be prevalent due to programming styles and compiler optimizations\cite{comprehensive_performance_comparison}. They reason that with all issues in mind, OpenCL can reach the same performance as CUDA.
 
 \section{Aparapi}
 
