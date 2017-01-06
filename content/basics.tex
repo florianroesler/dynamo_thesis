@@ -69,4 +69,43 @@ While OpenCL supports more device types and vendors it seems questionable whethe
 
 \section{Aparapi}
 
-Explain Aparapi's architecture and results.
+Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL Kernels. Firstly, library contains bindings to access OpenCL functions through a Java Native Interface (abbrv. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. Therefore, programmers can build classes that inherit the abstract Kernel class by Aparapi. The following code snippet shows such an example:
+
+\begin{lstlisting}
+final double[] a = new double[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+final double[] b = new double[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+final double[] c = new double[10];
+
+Kernel kernel = new Kernel() {
+  @Override
+  public void run() {
+     int i = getGlobalId();
+     c[i] = a[i] + b[i];
+  }
+};
+
+kernel.execute(10);
+
+for(Double result:c){
+  System.out.println(result);
+}
+\end{lstlisting}
+
+The above code takes two arrays of doubles and computes the sum of the elements at the same position, saving the result in a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read.
+
+Although the translation may work for many use cases, certain limitations apply to the Java code that Aparapi can handle:
+
+\begin{description}[style=nextline]
+  \item [Data Types]
+  The supported primitive data types are boolean, byte, short, int, long, and float. Additionally, only one-dimensional arrays comprised of these primitive types are allowed.
+
+  \item [Object Orientation]
+  While Aparapi supports Java objects, it can only translate classes whose attributes are again primitives. Also such classes should allow access to the attributes through getter and setter functions.
+
+  \item [Control Flow]
+  Aparapi only supports conditionals and counting for-loops. Switch, break, continue, enhanced for-loops and recursion are not allowed.
+
+  \item [Specific Device Choice]
+  Although it can be specified on which device type a kernel shall run, it is not possible to select a specific device for execution. For example, on a machine with four different GPUs one could not decide through Aparapi, which of the four GPUs should be used.
+
+\end{description}
