@@ -1,16 +1,18 @@
 \chapter{Basics}
 
 \section{Distribution Methods}
-
+\label{distribution}
 \subsection{OpenMP}
 OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program.
+
+\subsection{OpenACC}
 
 \subsection{MPI}
 Although OpenMP is a very powerful tool for parallelization on a single machine, in order to write larger scale software, communications across multiple machines are necessary. One standard tool to achieve this is MPI.
 MPI offers bindings to many languages and extends such by functions to identify a process and send as well as receive messages.
 
 \subsection{MapReduce}
-Due to its simple programming model, which mainly consists of a Map and a Reduce phase (there are many other phases in its implementations) it is a favoured approach for large clusters. Its most prominent implementation is Hadoop MapReduce, which in combination with Hadoop Distributed File System, is especially applicable for data intense jobs like log analysis and more.
+Due to its simple programming model, which mainly consists of a Map and a Reduce phase (there are many other phases in its implementations) it's a favoured approach for large clusters. Its most prominent implementation is Hadoop MapReduce, which in combination with Hadoop Distributed File System, is especially applicable for data intense jobs like log analysis and more.
 
 \section{CUDA}
 
@@ -91,9 +93,9 @@ for(Double result:c){
 }
 \end{lstlisting}
 
-The above code takes two arrays of doubles and computes the sum of the elements at the same position, saving the result in a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read.
+The above code takes two arrays of doubles and computes the sum of the elements at the same position, saving the result in a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read in order to improve performance.
 
-Although the translation may work for many use cases, certain limitations apply to the Java code that Aparapi can handle:
+Although the translation may work for many use cases, certain limitations apply to the Java code that Aparapi can handle. The following list covers some of these restrictions:
 
 \begin{description}[style=nextline]
   \item [Data Types]
@@ -107,5 +109,4 @@ Although the translation may work for many use cases, certain limitations apply 
 
   \item [Specific Device Choice]
   Although it can be specified on which device type a kernel shall run, it is not possible to select a specific device for execution. For example, on a machine with four different GPUs one could not decide through Aparapi, which of the four GPUs should be used.
-
 \end{description}

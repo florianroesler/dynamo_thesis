@@ -1,16 +1,46 @@
-
 \chapter{Dynamic OpenCL}
 
 \section{Distribution Approach}
 
-Choice of distribution -> why not MPI, MapReduce etc.
+As portrayed in section \ref{distribution} and \ref{related} many viable options exist to distribute tasks among devices within a single machine as well as across a cluster. This section will explain the reasons for selecting the fitting approaches based on the goals declared in section \ref{goals}.
+
+At first it is important to evaluate the options for running tasks on multiple devices within a single machine. While low level solutions like OpenMP or OpenACC are matured, they add considerable overhead to programming efforts. All communication and synchronization across multiple cores and devices has to be handled by the programmer, which adds introduces a layer of complexity through the utilization of directives. Thus, programmers have to be knowledgable and experiences in utilizing these directives for an efficient execution.
+
+Instead OpenCL will be selected for the distribution of tasks within a single machine. While CUDA offers similar capabilities as OpenCL, it only supports NVIDIA GPUs and completely lacks CPU support. This contradicts with the proposed goal of a heterogenous environment in which devices of different types and vendors cooperate. OpenCL introduces a standardized form in which algorithms have to be designed following the defined memory model and work-item approach. Even though many synchronization and communication calls like data transfers are abstracted away from the programmer, significant low level knowledge is required for building algorithms in the framework. In order to create a more simplified approach, difficult issues for programmers should also be abstracted behind a meaningful API. The necessary steps for that are covered in section \ref{abstraction}.
+
+Even though many solutions for distributing computational workloads among machines in a cluster, most require significant cluster management or programming efforts. Because OpenCL is selected as the underlying computational framework on the machines, the cluster distribution technology has to fit its capabilities.
+
+Similar to OpenMP, MPI has matured over decades as a standard solution for low level communications between multiple machines. As such it has also been used frequently in conjunction with OpenCL and inspired frameworks to build upon this combination. Still, MPI remains a significant contributor to program complexity.
+
+On the opposite MapReduce based frameworks like Hadoop MapReduce offer a strict programming model with a fixed API to follow for each implemented algorithm. As such it has also been used to run OpenCL on top of it within Map phases. In addition some frameworks were created by researchers utilizing both technologies in conjunction. As Hadoop MapReduce requires HDFS as the mandatory file system, not only MapReduce nodes but also HDFS nodes have to managed within the cluster. Another restricting factor is the extensive usage of HDFS for writing intermediate results, which has negative impacts on performance.
+
+While many of the previously described cluster distribution approaches are used in many professional projects, API forwarding libraries for OpenCL can offload computational workloads across a cluster without impacting programmers or introducing significant cluster management overhead. Available options with these capabilities include SnuCL, VirtualCL and dOpenCL as described in section \ref{related}. While all these frameworks have their own special functionalities, the key feature to be considered is the API forwarding, which has to work stable in order to ensure a well functioning distribution of tasks. Therefore as a first step the three frameworks were installed on the following cluster:
+
+\begin{table}
+  \centering
+    \begin{adjustbox}{width=1\textwidth}
+    \small
+    \begin{tabular}{l | l | l | l}
+    ~                     & Machine A                    & Machine B                  & Machine C                  \\
+    \hline
+    CPU                   & 4x Intel Xeon CPU E7-8890 v3 & Intel Xeon CPU E3-1284L v4 & Intel Xeon CPU E3-1284L v4 \\
+    RAM                   & 128GB                        & 32GB                       & 32GB                       \\
+    Interconnect          & 1 GBit/s                     & 10 GBit/s                  & 10 GBit/s                  \\
+    OS                    & Ubuntu 16.04.1 64 Bit        & Ubuntu 16.04.1 64 Bit      & Ubuntu 16.04.1 64 Bit      \\
+    OpenCL Driver Version & 1.2.0.10002                  & 1.2.0.25                   & 1.2.0.25                   \\
+    \end{tabular}
+    \end{adjustbox}
+
+    \caption{Table inside a floating element}
+    \label{table:ta}
+\end{table}
 
 Choice of Framework -> SnuCL vs VirtualCL vs dOpenCL
-
+describe test setup
 Show Benchmarks of dOpenCL
 
 \section{High-Level Abstraction}
-
+\label{abstraction}
 Reason why we need the abstraction
 
 Showcase Aparapi
@@ -56,7 +86,6 @@ pure remote cloud with the server running in the cloud itself
 hybrid cloud
 
 use the framework as a library for a job itself
-
 \section{Limitations}
 
 show bottlenecks (memory of central machine and network in total)
