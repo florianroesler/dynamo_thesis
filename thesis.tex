@@ -2,6 +2,8 @@
 \newcommand\bcor{8mm} % <= falls nötig, Bindungskorrektur für Druckversion (ohne Layoutzerstörung bei Anpassung)
 \usepackage{osm-thesis}
 \usepackage{listings}
+\usepackage{adjustbox}
+\usepackage{float}
 
 % ABOUT
 \newcommand{\hpitype}{Master Thesis}
@@ -36,15 +38,12 @@
 
 	% Textteil
 	\pagenumbering{arabic}
-  \include{content/introduction}
-  \include{content/basics}
-
-
-  \include{content/related}
-
+	\include{content/introduction}
+	\include{content/basics}
+	\include{content/related}
 	\include{content/main}
-  \include{content/evaluation}
-  \include{content/demonstration}
+  	\include{content/evaluation}
+	\include{content/demonstration}
 	\include{content/conclusion}
 
 
