@@ -27,23 +27,23 @@ While many of the previously described cluster distribution approaches are used 
     RAM                   & 32GB                        & 128GB                       	& 32GB                       \\
     Interconnect          & 10 GBit/s                   & 1 GBit/s                  	& 10 GBit/s                  \\
     OS                    & Ubuntu 16.04.1 64 Bit       & Ubuntu 16.04.1 64 Bit      	& Ubuntu 16.04.1 64 Bit      \\
-    OpenCL Driver Version & 1.2.0.25                  	& 1.2.0.10002                   & 1.2.0.25                   \\
+    OpenCL Driver Version & /                 			& 1.2.0.10002                   & 1.2.0.25                   \\
     \end{tabular}
     \end{adjustbox}
 
-    \caption{Table inside a floating element}
-    \label{table:ta}
+    \caption{Cluster Setup for Distribution Framework Tests}
+    \label{table:cluster_setup_1}
 \end{table}
 
 As a first step, each of the frameworks was installed on the cluster following their respective included documentation. In the case of SnuCL the installation could not be completed using versions 1.3.2 and 1.3.3. While VirtualCL 1.24 could be installed without issues, executing various OpenCL programs led to inconsistent Segmentation Faults. The last candidate, dOpenCL 0.4.0r1819, was installed successfully and also managed to run the previously failed programs without issues. Therefore dOpenCL was chosen for more detailed benchmarks to investigate performance caveats.
 
 Due to its architecture, dOpenCL has to communicate back and forth with remote devices over the network in order to send inputs and retrieve results. Thus, computations can be highly impacted by network transfers when the algorithm performs relatively quickly in comparison to the required input data. In the interest of creating such a data heavy algorithm, a matrix multiplication was implemented in OpenCL, which follows the naive school algorithm. This means that the complexity of the algorithm is $O(n^3)$. The only performance optimization that was undertaken is the transposition of the second matrix, which greatly improves cache efficiency.
 
-In order to retrieve empirical facts about the performance depending on the network interconnection, matrix multiplications of different sizes were executed locally and remotely originating from Machine A to Machine B as well from Machine A to Machine C. To ensure that the network performance meets its specification, network performance tests were undertaken before benchmarking using iperf3 and ping. Both utilities were executed subsequently over the duration of 60 seconds with a measurement taken each second.
+In order to retrieve empirical facts about the performance depending on the network interconnection, matrix multiplications of different sizes were executed locally and remotely originating from Machine A to Machine B as well from Machine A to Machine C. To ensure that the network performance meets its specification, network performance tests were undertaken before benchmarking using iperf3 and ping. Both utilities were executed subsequently over the duration of 60 seconds with a measurement taken each second. The results are displayed in table \ref{table:cluster_interconnect_benchmarks}.
 
-\begin{table}[htb]
+\begin{table}[!htb]
 	\centering
-	\begin{adjustbox}{width=1\textwidth}
+	\begin{adjustbox}{width=0.5\textwidth}
 		\small
 		\begin{tabular}{l | l | l}
 			~                     & Machine B                  			& Machine C                  \\
@@ -53,14 +53,15 @@ In order to retrieve empirical facts about the performance depending on the netw
 		\end{tabular}
 	\end{adjustbox}
 	
-	\caption{Table inside a floating element}
-	\label{table:ta}
+	\caption{Cluster Interconnect Benchmarks}
+	\label{table:cluster_interconnect_benchmarks}
 \end{table}
 
+From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies. Based on these results the matrix multiplication was executed. As $AB = C$, the two input matrices have to be transferred to the executing device and the resulting matrix has to be retrieved after computation. This means that three data transfers have to be made, which in the case of two $8000x8000$ float matrices are $8000^2 * 4 bytes = 256 Megabytes$ per matrix. In order to distinguish the computational time from the data transfer times, data transfers were measured utilizing the OpenCL profiling options.
 
-Choice of Framework -> SnuCL vs VirtualCL vs dOpenCL
-describe test setup
-Show Benchmarks of dOpenCL
+It is visible from the obtained results that the local executions have minimal transfer times for the matrices as the only limiting factor is the bus interface between CPU and RAM. One the opposite, data transfers can have significant impact on performance for remote executions as the Ethernet transfers has to be added on top. This is especially true for fast machines that only have an inadequate interconnection speed like Machine B. While for matrix sizes of 8000x8000 the local execution only requires less than 2\% of the time for data transfers, its remote counterpart uses 25\% of the total. In the case of Machine C, the remote transfers profit from the 10 Gbit/s interconnect. As Machine C is considerably slower than Machine B during the computation phase, the fraction of data transfer time from the total is negligible.
+
+Based on the results, one can conclude that the remote computation itself is nearly as fast as the local execution and that the introduced overhead by dOpenCL is marginal. Real performance degradations occur when data transfers have to be processed, which is directly affected by the network performance. Still, dOpenCL can greatly improve performance when accessing a superior machine via remote as seen in the example of Machine C and Machine B. In the given benchmark Machine C could profit from outsourcing the computation of 8000x8000 matrices to Machine B through a 5x speedup.
 
 \section{High-Level Abstraction}
 \label{abstraction}
