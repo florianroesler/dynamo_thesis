@@ -21,19 +21,42 @@ While many of the previously described cluster distribution approaches are used 
     \begin{adjustbox}{width=1\textwidth}
     \small
     \begin{tabular}{l | l | l | l}
-    ~                     & Machine A                    & Machine B                  & Machine C                  \\
+    ~                     & Machine A                   & Machine B                  	& Machine C                  \\
     \hline
-    CPU                   & 4x Intel Xeon CPU E7-8890 v3 & Intel Xeon CPU E3-1284L v4 & Intel Xeon CPU E3-1284L v4 \\
-    RAM                   & 128GB                        & 32GB                       & 32GB                       \\
-    Interconnect          & 1 GBit/s                     & 10 GBit/s                  & 10 GBit/s                  \\
-    OS                    & Ubuntu 16.04.1 64 Bit        & Ubuntu 16.04.1 64 Bit      & Ubuntu 16.04.1 64 Bit      \\
-    OpenCL Driver Version & 1.2.0.10002                  & 1.2.0.25                   & 1.2.0.25                   \\
+    CPU                   & Intel Xeon CPU E3-1284L v4 	& 4x Intel Xeon CPU E7-8890 v3 	& Intel Xeon CPU E3-1284L v4 \\
+    RAM                   & 32GB                        & 128GB                       	& 32GB                       \\
+    Interconnect          & 10 GBit/s                   & 1 GBit/s                  	& 10 GBit/s                  \\
+    OS                    & Ubuntu 16.04.1 64 Bit       & Ubuntu 16.04.1 64 Bit      	& Ubuntu 16.04.1 64 Bit      \\
+    OpenCL Driver Version & 1.2.0.25                  	& 1.2.0.10002                   & 1.2.0.25                   \\
     \end{tabular}
     \end{adjustbox}
 
     \caption{Table inside a floating element}
     \label{table:ta}
 \end{table}
+
+As a first step, each of the frameworks was installed on the cluster following their respective included documentation. In the case of SnuCL the installation could not be completed using versions 1.3.2 and 1.3.3. While VirtualCL 1.24 could be installed without issues, executing various OpenCL programs led to inconsistent Segmentation Faults. The last candidate, dOpenCL 0.4.0r1819, was installed successfully and also managed to run the previously failed programs without issues. Therefore dOpenCL was chosen for more detailed benchmarks to investigate performance caveats.
+
+Due to its architecture, dOpenCL has to communicate back and forth with remote devices over the network in order to send inputs and retrieve results. Thus, computations can be highly impacted by network transfers when the algorithm performs relatively quickly in comparison to the required input data. In the interest of creating such a data heavy algorithm, a matrix multiplication was implemented in OpenCL, which follows the naive school algorithm. This means that the complexity of the algorithm is $O(n^3)$. The only performance optimization that was undertaken is the transposition of the second matrix, which greatly improves cache efficiency.
+
+In order to retrieve empirical facts about the performance depending on the network interconnection, matrix multiplications of different sizes were executed locally and remotely originating from Machine A to Machine B as well from Machine A to Machine C. To ensure that the network performance meets its specification, network performance tests were undertaken before benchmarking using iperf3 and ping. Both utilities were executed subsequently over the duration of 60 seconds with a measurement taken each second.
+
+\begin{table}[htb]
+	\centering
+	\begin{adjustbox}{width=1\textwidth}
+		\small
+		\begin{tabular}{l | l | l}
+			~                     & Machine B                  			& Machine C                  \\
+			\hline
+			iperf3                & 941.31 Mbit/s ($\sigma = 0.95$) 	& 9.409 Gbit/s ($\sigma = 0.051$) \\
+			ping                  & 0.186 ms ($\sigma = 0.022$)  		& 0.14 ms ($\sigma = 0.012$)  \\
+		\end{tabular}
+	\end{adjustbox}
+	
+	\caption{Table inside a floating element}
+	\label{table:ta}
+\end{table}
+
 
 Choice of Framework -> SnuCL vs VirtualCL vs dOpenCL
 describe test setup
