@@ -65,12 +65,12 @@ __kernel void run(__global double *a, __global double *b, __global double *c){
 }
 \end{lstlisting}
 
-Executing this snippet with its corresponding host code on an early 2015 Macbook Air may lead to two different results. On the one hand, execution on the built-in i5-5250U CPU will correctly add the two provided arrays and save the result in a third array. On the other hand the included Iris Graphics 6100 GPU will produce an error as it does not support the required OpenCL FP64 extension.
+For this example the host code that is responsible for choosing an appropriate device, initiating data transfers and other auxiliary tasks has been omitted. With around 50 lines of code it is considerably longer than the actual kernel code. Executing the snippet on an early 2015 Macbook Air may lead to two different results. On the one hand, execution on the built-in i5-5250U CPU will correctly add the two provided arrays and save the result in a third array. On the other hand the included Iris Graphics 6100 GPU will produce an error as it does not support the required OpenCL FP64 extension.
 
-While OpenCL supports more device types and vendors it seems questionable whether having a general programming model comes with the price of performance penalties when compared to the specialized CUDA platform. Karimi, Dickson and Hamze have shown that CUDA code may be ported to OpenCL with only few modifications but will run between 16\% and 67\% slower depending on the problem size of their implemented Monte Carlo simulation\cite{performance_comparison}. On the opposite, Fang and Varbanescu and Sips have come to the conclusion that such performance gaps are influenced by the differences between the programming models and may be prevalent due to programming styles and compiler optimizations\cite{comprehensive_performance_comparison}. They reason that with all issues in mind, OpenCL can reach the same performance as CUDA.
+While OpenCL supports more device types and vendors it seems questionable whether having a general programming model comes with the price of performance penalties when compared to the specialized CUDA platform. Karimi, Dickson and Hamze have shown that CUDA code may be ported to OpenCL with only few modifications but will run between 16\% and 67\% slower depending on the problem size of their implemented Monte Carlo simulation\cite{performance_comparison}. On the opposite, Fang and Varbanescu and Sips have come to the conclusion that such performance gaps are influenced by the differences between the programming models and may be prevalent due to programming mistakes and compiler optimizations\cite{comprehensive_performance_comparison}. They reason that with all issues in mind, OpenCL can reach the same performance as CUDA.
 
 \section{Aparapi}
-
+\label{aparapi}
 Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL Kernels. Firstly, library contains bindings to access OpenCL functions through a Java Native Interface (abbrv. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. Therefore, programmers can build classes that inherit the abstract Kernel class by Aparapi. The following code snippet shows such an example:
 
 \begin{lstlisting}
@@ -93,9 +93,9 @@ for(Double result:c){
 }
 \end{lstlisting}
 
-The above code takes two arrays of doubles and computes the sum of the elements at the same position, saving the result in a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read in order to improve performance.
+The above code takes two arrays of doubles and computes the sum of contained elements at the same index, saving the result in a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read in order to improve performance. While an original OpenCL implementation would require ~50 lines of auxiliary code, Aparapi abstracts tasks like device selection and data handling when no specific control is needed. This enables developers to program algorithms considerably faster and allows beginners quick access to OpenCL features without knowledge of low level mechanisms.
 
-Although the translation may work for many use cases, certain limitations apply to the Java code that Aparapi can handle. The following list covers some of these restrictions:
+Although the code translation of Aparapi may work for many use cases, certain limitations apply to the Java code that can be handled. The following list covers some of these restrictions:
 
 \begin{description}[style=nextline]
   \item [Data Types]

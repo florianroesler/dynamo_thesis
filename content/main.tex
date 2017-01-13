@@ -1,7 +1,7 @@
 \chapter{Dynamic OpenCL}
 
 \section{Distribution Approach}
-
+\label{distribution}
 As portrayed in section \ref{distribution} and \ref{related} many viable options exist to distribute tasks among devices within a single machine as well as across a cluster. This section will explain the reasons for selecting the fitting approaches based on the goals declared in section \ref{goals}.
 
 At first it is important to evaluate the options for running tasks on multiple devices within a single machine. While low level solutions like OpenMP or OpenACC are matured, they add considerable overhead to programming efforts. All communication and synchronization across multiple cores and devices has to be handled by the programmer, which adds introduces a layer of complexity through the utilization of directives. Thus, programmers have to be knowledgable and experiences in utilizing these directives for an efficient execution.
@@ -57,7 +57,9 @@ In order to retrieve empirical facts about the performance depending on the netw
 	\label{table:cluster_interconnect_benchmarks}
 \end{table}
 
-From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies. Based on these results the matrix multiplication was executed. As $AB = C$, the two input matrices have to be transferred to the executing device and the resulting matrix has to be retrieved after computation. This means that three data transfers have to be made, which in the case of two $8000x8000$ float matrices are $8000^2 * 4 bytes = 256 Megabytes$ per matrix. In order to distinguish the computational time from the data transfer times, data transfers were measured utilizing the OpenCL profiling options.
+From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies. Based on these results the matrix multiplication was executed. As $AB = C$, the two input matrices have to be transferred to the executing device and the resulting matrix has to be retrieved after completing the computation. This means that three data transfers have to be made, which in the case of two $8000x8000$ float matrices are $8000^2 * 4 bytes = 256 Megabytes$ per matrix. In order to distinguish the computational time from the data transfer times, data transfers were measured utilizing the OpenCL profiling options.
+
+[TODO: benchmarks]
 
 It is visible from the obtained results that the local executions have minimal transfer times for the matrices as the only limiting factor is the bus interface between CPU and RAM. One the opposite, data transfers can have significant impact on performance for remote executions as the Ethernet transfers has to be added on top. This is especially true for fast machines that only have an inadequate interconnection speed like Machine B. While for matrix sizes of 8000x8000 the local execution only requires less than 2\% of the time for data transfers, its remote counterpart uses 25\% of the total. In the case of Machine C, the remote transfers profit from the 10 Gbit/s interconnect. As Machine C is considerably slower than Machine B during the computation phase, the fraction of data transfer time from the total is negligible.
 
@@ -65,11 +67,24 @@ Based on the results, one can conclude that the remote computation itself is nea
 
 \section{High-Level Abstraction}
 \label{abstraction}
-Reason why we need the abstraction
 
-Showcase Aparapi
+In section \ref{aparapi} it was shown how little code and knowledge of internals is required for building OpenCL computations with the help of Aparapi. Including the library in the eventual framework would not only benefit end users due to a simplified programming environment but also greatly assist during the creation of the framework itself. Through Aparapi Java could be used as the overall language of project while abandoning C++ for most parts with the exception of dOpenCL. Due to the choice of a more high level language for the less performance critical code, Java promises faster building time and better maintainability. In order to achieve this, Aparapi has to be connected to dOpenCL to harness the distribution capabilities. First, it has to be evaluated, whether Aparapi performs adequately compared to an original OpenCL algorithm. For that cause the matrix multiplication benchmark from section \ref{distribution} was transformed to Aparapi and executed on Machine C from the benchmark cluster. The matrix sizes as well as the number of iterations is identical to the previous benchmark. As Aparapi translates the Java code for Kernels it has not encountered before, the translation time would skew the results. In a separate benchmark it could be discovered that the translation of a kernel with more than 100 lines of code takes on average less than 250 milliseconds \footnote{$n=100; \bar{x} = 242ms; \sigma = 13ms$}, which for long tasks becomes diminishable. Still, before running the measured iterations, an initial run is executed to translate the Kernel, which is ignored in the final measurements. 
 
-Explain changes made to connect dopencl and aparapi
+
+As visible in the results, Aparapi grants similar performance as original OpenCL for the executed use case. This means that the overhead of utilizing a JNI to access OpenCL is only minimal and for big tasks becomes insignificant. Based on the results and on reviewing the generated code from Aparapi it can also be concluded that the code translation for a naive matrix multiplication generates performant code. Therefore it is valid to utilize Aparapi in the envisioned framework. As a first step the connection between Aparapi and dOpenCL should be evaluated. For this cause both components were installed in a development system and tested for interoperability. It was discovered that in their standard versions both pieces of software do not work in conjunction because of several bugs or design decisions. These problems and the corresponding solutions will be explained in the following part:
+
+\begin{description}[style=nextline]
+	\item [No Available Devices]
+	When querying dOpenCL for appropriate devices from Aparapi, none would be returned even though multiple devices were available when using standard OpenCL. The problem for this symptom lies within dOpenCL, which insufficiently implements the query method. OpenCL uses a single byte to identify queried devices types. For instance \textit{00000010} queries CPUs and \textit{00000100} asks for GPUs. dOpenCL checks for the position of the bit and would correctly return devices of the requested task. The OpenCL standard also allows bitwise OR-operations on multiple types so that when requesting for CPUs and GPUs in one query: \textit{00000010 OR 00000100 = 00000110}. As Aparapi only supports CPUs and GPUs, it specifically asks for these devices even when the user only requests a CPU - filtering the CPUs is then done in Java. Because dOpenCL does not support these combined queries, it can not return any devices to Aparapi. Therefore this method was fixed, which resulted in Aparapi successfully obtaining information about available devices.
+	
+	\item [Specific Device Choice]
+	Aparapi by design is focused on providing a simple API, which lacks certain features that are important for the framework. For example it is desirable to have multiple instances of the same Kernel run in parallel with different data. Therefore it would be possible to split tasks into smaller subsets of data that could be distributed to various devices. Aparapi allows to define preferences on which specific device a Kernel should be run. This preference is saved on class level instead of instance level, which means that all instances of the same class would be directed to the same device. Therefore no parallelization is possible with the standard Aparapi version. In order to fix this issue, the mechanism for memorizing preferences was modified to respect the definitions for each individual instance of a Kernel.
+	
+	\item [Failed compilations when using multiple devices]
+	Due to fixing the previously described issues, the development system was able to successfully execute Kernels on a single node cluster. Adding a second machine with different installed devices produced an error during the OpenCL compilation process even when only one device was targeted for execution. In the given environment both nodes by itself were able to compile the Kernel without any incidents. Additionally it was verified that dOpenCL without Aparapi supported the multi node cluster. Therefore it was suspected that Aparapi had a bug that prevented the compilation when more than one machine was present. Through reviewing Aparapi internals the cause for the issue was found: Aparapi creates an OpenCL context not per device but per type. OpenCL contexts serve for sharing memory and control structures between multiple devices but can only be defined for devices of the same platform. Thus, when having multiple CPUs of different vendors in a cluster, Aparapi tries to create a context for all CPUs, which creates the error. In order to prevent this violation, in the fixed version Aparapi creates a context only for a single device.
+	
+\end{description} 
+ 
 
 show benchmark of connection
 
