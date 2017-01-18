@@ -27,7 +27,7 @@ While many of the previously described cluster distribution approaches are used 
     RAM                   & 32GB                        & 128GB                       	& 32GB                       \\
     Interconnect          & 10 GBit/s                   & 1 GBit/s                  	& 10 GBit/s                  \\
     OS                    & Ubuntu 16.04.1 64 Bit       & Ubuntu 16.04.1 64 Bit      	& Ubuntu 16.04.1 64 Bit      \\
-    OpenCL Driver Version & /                 			& 1.2.0.10002                   & 1.2.0.25                   \\
+    OpenCL Driver Version & 1.2.0.25          			& 1.2.0.10002                   & 1.2.0.25                   \\
     \end{tabular}
     \end{adjustbox}
 
@@ -63,12 +63,14 @@ From the benchmarks it can be inferred that both interconnects work close to the
 
 It is visible from the obtained results that the local executions have minimal transfer times for the matrices as the only limiting factor is the bus interface between CPU and RAM. One the opposite, data transfers can have significant impact on performance for remote executions as the Ethernet transfers has to be added on top. This is especially true for fast machines that only have an inadequate interconnection speed like Machine B. While for matrix sizes of 8000x8000 the local execution only requires less than 2\% of the time for data transfers, its remote counterpart uses 25\% of the total. In the case of Machine C, the remote transfers profit from the 10 Gbit/s interconnect. As Machine C is considerably slower than Machine B during the computation phase, the fraction of data transfer time from the total is negligible.
 
-Based on the results, one can conclude that the remote computation itself is nearly as fast as the local execution and that the introduced overhead by dOpenCL is marginal. Real performance degradations occur when data transfers have to be processed, which is directly affected by the network performance. Still, dOpenCL can greatly improve performance when accessing a superior machine via remote as seen in the example of Machine C and Machine B. In the given benchmark Machine C could profit from outsourcing the computation of 8000x8000 matrices to Machine B through a 5x speedup.
+Based on the results, one can conclude that the remote computation itself is nearly as fast as the local execution and that the introduced overhead by dOpenCL is marginal. Real performance degradations occur when data transfers have to be processed, which are directly affected by the network performance. Still, dOpenCL can greatly improve performance when accessing a superior machine via remote as seen in the example of Machine C and Machine B. In the given benchmark Machine A could profit from outsourcing the computation of 8000x8000 matrices to Machine B through a 5x speedup\footnote{Considering that Machine A and Machine C have identical setups and therefore assuming that both display equal performance.}.
 
 \section{High-Level Abstraction}
 \label{abstraction}
 
 In section \ref{aparapi} it was shown how little code and knowledge of internals is required for building OpenCL computations with the help of Aparapi. Including the library in the eventual framework would not only benefit end users due to a simplified programming environment but also greatly assist during the creation of the framework itself. Through Aparapi Java could be used as the overall language of project while abandoning C++ for most parts with the exception of dOpenCL. Due to the choice of a more high level language for the less performance critical code, Java promises faster building time and better maintainability. In order to achieve this, Aparapi has to be connected to dOpenCL to harness the distribution capabilities. First, it has to be evaluated, whether Aparapi performs adequately compared to an original OpenCL algorithm. For that cause the matrix multiplication benchmark from section \ref{distribution} was transformed to Aparapi and executed on Machine C from the benchmark cluster. The matrix sizes as well as the number of iterations is identical to the previous benchmark. As Aparapi translates the Java code for Kernels it has not encountered before, the translation time would skew the results. In a separate benchmark it could be discovered that the translation of a kernel with more than 100 lines of code takes on average less than 250 milliseconds \footnote{$n=100; \bar{x} = 242ms; \sigma = 13ms$}, which for long tasks becomes diminishable. Still, before running the measured iterations, an initial run is executed to translate the Kernel, which is ignored in the final measurements. 
+
+[TODO: benchmarks]
 
 As visible in the results, Aparapi grants similar performance as original OpenCL for the executed use case. This means that the overhead of utilizing a JNI to access OpenCL is only minimal and for big tasks becomes insignificant. Based on the results and on reviewing the generated code from Aparapi it can also be concluded that the code translation for a naive matrix multiplication generates performant code. Therefore it is valid to utilize Aparapi in the envisioned framework. As a first step the connection between Aparapi and dOpenCL should be evaluated. For this cause both components were installed in a development system and tested for interoperability. It was discovered that in their standard versions both pieces of software do not work in conjunction because of several bugs or design decisions. These problems and the corresponding solutions will be explained in the following part:
 
@@ -80,24 +82,106 @@ As visible in the results, Aparapi grants similar performance as original OpenCL
 	Aparapi by design is focused on providing a simple API, which lacks certain features that are important for the framework. For example it is desirable to have multiple instances of the same Kernel run in parallel with different data. Therefore it would be possible to split tasks into smaller subsets of data that could be distributed to various devices. Aparapi allows to define preferences on which specific device a Kernel should be run. This preference is saved on class level instead of instance level, which means that all instances of the same class would be directed to the same device. Therefore no parallelization is possible with the standard Aparapi version. In order to fix this issue, the mechanism for memorizing preferences was modified to respect the definitions for each individual instance of a Kernel.
 	
 	\item [Failed compilations when using multiple devices]
-	Due to fixing the previously described issues, the development system was able to successfully execute Kernels on a single node cluster. Adding a second machine with different installed devices produced an error during the OpenCL compilation process even when only one device was targeted for execution. In the given environment both nodes by itself were able to compile the Kernel without any incidents. Additionally it was verified that dOpenCL without Aparapi supported the multi node cluster. Therefore it was suspected that Aparapi had a bug that prevented the compilation when more than one machine was present. Through reviewing Aparapi internals the cause for the issue was found: Aparapi creates an OpenCL context not per device but per type. OpenCL contexts serve for sharing memory and control structures between multiple devices but can only be defined for devices of the same platform. Thus, when having multiple CPUs of different vendors in a cluster, Aparapi tries to create a context for all CPUs, which creates the error. In order to prevent this violation, in the fixed version Aparapi creates a context only for a single device.
+	Due to fixing the previously described issues, the development system was able to successfully execute Kernels on a single node cluster. Adding a second machine with different installed devices produced an error during the OpenCL compilation process even when only one device was targeted for execution. In the given environment both nodes by itself were able to compile the Kernel without any incidents. Additionally it was verified that dOpenCL without Aparapi supported the multi node cluster. Therefore it was suspected that Aparapi had a bug that prevented the compilation when more than one machine was present. Through reviewing Aparapi internals the cause for the issue was found: Aparapi creates an OpenCL context not per device but per type. OpenCL contexts serve for sharing memory and control structures between multiple devices but can only be defined for devices of the same platform. Thus, when having multiple CPUs of different vendors in a cluster, Aparapi tries to create a context for all CPUs, which creates the error. In order to prevent this violation, in the fixed version contexts are created only for a single device.
 	
 \end{description} 
  
 
-show benchmark of connection
-
 \section{Job Design}
 
-show own code and what that means for programming workflow
+With the implemented fixes described in section \ref{abstraction} Aparapi is able to successfully communicate with dOpenCL and deploy tasks to multiple remote devices. This ability enables tasks to be split up into subtasks, which can be computed in parallel. Therefore the envisioned framework has to provide a mechanism for submitting split tasks by the programmer. With such a mechanism the challenge arises how to distribute data among splits. While some problems may have no or little dependency across data, others may require complex interconnections between individual data points. Thus it is inevitable to ensure that each split has all the necessary data for its correct computation. On the opposite, naively including the full data set in each split may lead to serious performance penalties due to longer data transfer times. This becomes especially important with the introduction of remote execution libraries like dOpenCL, where the most likely bottleneck is the network connection.
+
+Based on previous research the following methods were identified:
+
+\begin{description}[style=nextline]
+	\item [Manual Splits]
+	Hadoop MapReduce enforces saving input data for the executable tasks in split files on the Hadoop Distributed File System. Each split file is executed independently and programmers have to define how to interpret a split during the map phase. Ultimately, the individually programmed reduce algorithm merges the splits together to form a final result.
+	
+	\item [Naive Buffer Replication]
+	A simple and safe way to ensure that every split has the required data available is to transfer all data to the employed devices as done by \citeauthor{delalama_2012}\cite{delalama_2012}. Their method of buffer replication is trivial when transferring to the devices. On the opposite merging the individual output buffers back into the final result requires an algorithm to determine the parts that should be included by each split.
+	
+	\item [Intelligent Buffer Replication]
+	\citeauthor{Kim_2011}\cite{Kim_2011} have developed a mechanism to automatically determine how to split input buffers among subtasks in OpenCL so that only minimal data has to be transferred. Their method is based on sampling memory access patterns before sending the data so that lower and upper memory bounds can be determined.
+		
+	\item [Meta Functions]
+	\citeauthor{stepocl}\cite{stepocl} as well as \citeauthor{distcl}\cite{distcl} employ meta functions that are utilized to determine split data independent from the problem size. These meta functions have to be supplied by the programmer and define the access patterns by the algorithm.
+	
+\end{description} 
+
+While all of the above mentioned methods are meaningful candidates, they each have negative impact either on performance or programming complexity: \textit{Naive Buffer Replication} increases total data transfer sizes, which enhances the chances of network congestion the higher the number of splits becomes. \textit{Intelligent Buffer Replication} requires an extra step for sampling memory accesses, which includes the translation of OpenCL to C code. Although \textit{Meta Functions} try to abstract efforts away from programmers they are still required to define the access patterns manually. \textit{Manual Splits} put the entire responsibility into the hands of the programmer who has to make sure that the data is split and merged back together. While it is the least automated method, it also grants full control over performance and is not dependent on split and merge algorithms that may fail for complex problems. Thus, the framework will support \textit{Manual Splits}. In order to show that such an approach is eligible in combination with Aparapi the following code example will illustrate the process of splitting the addition of two arrays into subtasks:
+
+\begin{lstlisting}
+public class AdditionKernel extends Kernel{
+  int[] a, b, result;
+
+  public AdditionKernel(int[] a, int[] b) {
+    this.a = a;
+    this.b = b;
+    this.result = new int[a.length];
+  }
+
+  @Override
+    public void run() {
+    int i = getGlobalId();
+    result[i] = a[i] + b[i];
+  }
+}
+
+public class Addition {
+  public static void main(String[] args) {
+    final int tileCount = 2;
+    int[] a = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    int[] b = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    int[] result = new int[a.length];
+
+    int tileWidth = a.length / tileCount;
+    for(int i = 0; i < tileCount; i++){
+      int[] aTile = Arrays.copyOfRange(a, i * tileWidth, (i + 1) * tileWidth);
+      int[] bTile = Arrays.copyOfRange(b, i * tileWidth, (i + 1) * tileWidth);
+
+      AdditionKernel additionKernel = new AdditionKernel(aTile, bTile);
+      additionKernel.execute(tileWidth);
+      System.arraycopy(additionKernel.result, 0, result, i * tileWidth, tileWidth);
+    }
+
+    System.out.println(Arrays.toString(result));
+  }
+}
+
+\end{lstlisting}
+
+In the example a reusable Aparapi Kernel \textit{AdditionKernel} is defined that computes the sums of the two arrays independent of the general problem size. In the class \textit{Addition} the generated input data is split into smaller parts based on the \textit{tileCount}. Then for each tile the \textit{AdditionKernel} is instantiated and executed. After the execution the individual result is copied into the overall \textit{result} array. In order to grant higher parallelization the \textit{tileCount} could be dynamically changed into a divisor of the array length. This illustrates that writing a split and merge algorithm can be intuitive and not require much code. Additionally, other approaches like \textit{Meta Functions} would still require a substantial amount of code.
+
 
 design considerations and limitations of Aparapi
 
 \section{Hybrid Cloud}
 
+In the previous sections benchmarks and code examples were shown based on the existence of a local cluster.
+While local clusters may provide cheap and stable performance when completely utilized. In reality resource demands fluctuate, making it hard to reach an equilibrium with a full resource utilization and no job queue. For example the New York University recorded monthly utilization measurements for their three clusters in 2013\cite{nyu}, which are shown as a yearly aggregate in table \ref{table:cluster_utilization}. Aside from visible differences in average utilization all clusters show a considerably high standard deviation.
+
+\begin{table}[!htb]
+	\centering
+	\begin{adjustbox}{width=0.5\textwidth}
+		\small
+		\begin{tabular}{l | l | l | l}
+			~						& Cluster 1	& Cluster 2	& Cluster 3                 \\
+			\hline
+			Average Utilization 	& 81.1\%  	& 71.0\% 	& 76.1\% \\
+			Std. Deviation          & 5.2\%  	& 4.9\%		& 16.9\% \\
+		\end{tabular}
+	\end{adjustbox}
+	
+	\caption{NYU Cluster Utilization}
+	\label{table:cluster_utilization}
+\end{table}
+
+When providing a shared cluster that can be used by multiple parties, certain trade-offs apply. On the one hand overprovisioning decreases waiting times for users but increases costs and reduces utilization. On the other hand underprovisioning reduces costs and may lead to a 100\% utilization but comes with the price that users may have to line up in queues to access resources. Countering this trade-off comes the possibility to employ remote machines from cloud services, which can be booked and released dynamically and are billed hourly or even minutely. Among the most prominent services are Amazon's Elastic Compute Cloud (abbrv. EC2), Microsoft's Azure and Google's App Engine. While each cloud offer by the major players has its advantages and disadvantages, EC2 is the only that has bookable GPU instance types at various sizes. Although Azure and App Engine also have similar offerings, they are either only available as a preview in limited regions or can only be accessed by companies. Therefore, EC2 will be used as the exemplary cloud service for this research but with interchangeability in mind so that it is possible to replace EC2 with other services in the future.
+
+
+
 explain the connection of between a local cloud and an external cloud
 
-use amazon as example
 
 also consider security
 
