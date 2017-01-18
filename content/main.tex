@@ -158,7 +158,7 @@ design considerations and limitations of Aparapi
 \section{Hybrid Cloud}
 
 In the previous sections benchmarks and code examples were shown based on the existence of a local cluster.
-While local clusters may provide cheap and stable performance when completely utilized. In reality resource demands fluctuate, making it hard to reach an equilibrium with a full resource utilization and no job queue. For example the New York University recorded monthly utilization measurements for their three clusters in 2013\cite{nyu}, which are shown as a yearly aggregate in table \ref{table:cluster_utilization}. Aside from visible differences in average utilization all clusters show a considerably high standard deviation.
+While local clusters may provide cheap and stable performance when completely utilized. In reality resource demands fluctuate, making it hard to reach an equilibrium with a full resource utilization and no job queue. For instance, the New York University published monthly utilization measurements for their three clusters in 2013\cite{nyu}, which are shown as a yearly aggregate in table \ref{table:cluster_utilization}. Aside from visible differences in average utilization all clusters show a considerably high standard deviation.
 
 \begin{table}[!htb]
 	\centering
@@ -178,10 +178,34 @@ While local clusters may provide cheap and stable performance when completely ut
 
 When providing a shared cluster that can be used by multiple parties, certain trade-offs apply. On the one hand overprovisioning decreases waiting times for users but increases costs and reduces utilization. On the other hand underprovisioning reduces costs and may lead to a 100\% utilization but comes with the price that users may have to line up in queues to access resources. Countering this trade-off comes the possibility to employ remote machines from cloud services, which can be booked and released dynamically and are billed hourly or even minutely. Among the most prominent services are Amazon's Elastic Compute Cloud (abbrv. EC2), Microsoft's Azure and Google's App Engine. While each cloud offer by the major players has its advantages and disadvantages, EC2 is the only that has bookable GPU instance types at various sizes. Although Azure and App Engine also have similar offerings, they are either only available as a preview in limited regions or can only be accessed by companies. Therefore, EC2 will be used as the exemplary cloud service for this research but with interchangeability in mind so that it is possible to replace EC2 with other services in the future.
 
+Interconnecting the framework with EC2 requires including the AWS software development kit (abbrv. SDK), which is available for Java among many other languages. Through the SDK, the API for reserving and releasing instances can be accessed. Additionally, an Amazon Machine Image (abbrv. AMI) is required so that newly launched instances will have OpenCL installed and run the dOpenCL daemon by default on startup. For this cause an Ubuntu 14.04 based image was created with the appropriate drivers and dOpenCL installed, which is started right after booting the machine.
 
+Ordering and releasing machines within the framework shall be handled by a class called \textit{Machine Managger}, abstract the actual implementation of the utilized SDK in order to enable users to interchange the underlying cloud provider:
+
+
+\begin{lstlisting}
+public abstract class MachineManager {
+  protected abstract List<DynamoInstance> bookInstance(int count, String type);
+  protected abstract void terminateInstances(List<DynamoInstance> instances);
+  ...
+
+  public List<DynamoInstance> book(int count, String type){
+    List<DynamoInstance> instances = bookInstance(count, type);
+    ...
+    return instances;
+  }
+
+  public void release(List<DynamoInstance> instances){
+    terminateInstances(instances);
+    ...
+  }
+}
+\end{lstlisting}
+
+The above code shows the abstract class that handles bookings and releases of instances in the context of dOpenCL. For instance it includes functionalities which ensures that the booked instances are successfully booted and running the dOpenCL daemon before adding them to the cluster as well as removing them. These pieces have been deducted for the sake of readability. The actual implementation of the EC2 \textit{Machine Manager} that accesses the SDK is hidden behind the abstract class so that users only communicate with the generalized class. In order to employ another cloud provider, only the abstract methods have to be implemented.
 
 explain the connection of between a local cloud and an external cloud
-
+cloud images
 
 also consider security
 
