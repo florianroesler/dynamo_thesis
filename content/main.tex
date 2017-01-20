@@ -57,7 +57,7 @@ In order to retrieve empirical facts about the performance depending on the netw
 	\label{table:cluster_interconnect_benchmarks}
 \end{table}
 
-From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies. Based on these results the matrix multiplication was executed. As $AB = C$, the two input matrices have to be transferred to the executing device and the resulting matrix has to be retrieved after completing the computation. This means that three data transfers have to be made, which in the case of two $8000x8000$ float matrices are $8000^2 * 4 bytes = 256 Megabytes$ per matrix. In order to distinguish the computational time from the data transfer times, data transfers were measured utilizing the OpenCL profiling options.
+From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies. Based on these results the matrix multiplication was executed. As $AB = C$, the two input matrices have to be transferred to the executing device and the resulting matrix has to be retrieved after completing the computation. This means that three data transfers have to be made, which in the case of two $8000x8000$ float matrices are $8000^2 * 4 Bytes = 256 Megabytes$ per matrix. In order to distinguish the computational time from the data transfer times, data transfers were measured utilizing the OpenCL profiling options.
 
 \begin{figure}[H]
 
@@ -247,14 +247,46 @@ show the necessary changes towards dopencl and aparapi
 
 \section{Optimized Scheduling}
 
+As Dynamic OpenCL is supposed to offer its services to variously structured jobs in parallel, scheduling considerations have to be undertaken to maximize overall system efficiency and ensure a fair resource sharing process. It must be understood that both requirements can be contradictory depending on the submitted workloads and heterogeneity of available devices. For instance granting each job the same amount of devices in every scheduling round could mean that some jobs are assigned inadequate devices for their kind of task. For example a job that runs especially well on GPUs could receive a CPU device, thus lowering the overall efficiency. On the other hand, considering only performance based factors might starve certain jobs until all other workloads have finished.
 
+For a flexible approach that can be configured on the respective requirements of the cluster a two tiered scheduling architecture is proposed:
 
-explain general scheduling structure of dynamo
+\subsection*{Job Scheduling}
+The first scheduling tier only considers the system state on a job abstraction level without having any knowledge about the actual task structure or available devices in the cluster. Instead this tier is mainly concerned about ensuring predefined fairness policies and as such controls which jobs are eligible for sending their workloads to the next scheduling tier. Exemplary algorithms for this tier are the following:
 
-bring out the fancy stuff like performance history based approach and based on location of the machine
+\begin{description}[style=nextline]
+	\item[First-In First-Out] 
+	Jobs are fully prioritized by their submission time. Thus, tasks of two jobs will be completely submitted sequentially with the older job coming in front. Example: Job A with two tasks a and Job B with four tasks b will lead to the order aabbbb.
+	\item[Round-Robin] 
+	Tasks are put equally in rotating order so that each job gets a fair share of resources. Example: Job A with two tasks a and Job B with four tasks b will lead to the order ababbbb.
+	\item[Weighted Fair Sharing] 
+	Jobs carry a weight with them that determines their priority and number of tasks. Example: Job A (weight 1) with two tasks a and Job B (weight 2) with tasks b will lead to the order bbabba.
+\end{description}
+
+All of the above approaches do not require insight into the actual performance figures but determine the resulting task order by high level attributes like job submission time etc. Moreover, the selected algorithm on this tier can lead to significantly different outcomes for the overall system due to severe variations in fairness.
+
+\subsection*{Device Scheduling}
+
+The second scheduling tier gets its input from the preceding tier and has no concerns of the high level job view anymore. Instead it focuses on the actual assignment of tasks to devices. Executing OpenCL code in a heterogeneous environment can lead to drastically different performance numbers based on the implementation and the executing device. For example code that may perform exceptionally well on a GPU may perform poorly on a CPU because of varying memory architectures. Therefore programmers should be empowered to express preferences in terms of the device types that their algorithm will be computed on. Such functionality is included in the framework through a defined \textit{Device Preference} attribute that can be attached to every task. Valid values for the attribute include: \textit{None}, \textit{CPU only}, \textit{CPU preferred}, \textit{GPU only} and \textit{GPU preferred}. With these five preference levels programmers can accordingly specify their favorite device type. Using the \textit{CPU only} or \textit{GPU only} values signals algorithms to only assign the specific type. On the other hand \textit{CPU preferred} and \textit{GPU preferred} indicate that it is appropriate to schedule a GPU or a CPU respectively if the preferred type is not available. While it is possible for schedulers on this tier to ignore the defined preference, all currently implemented solutions within the framework adhere to the specification.
+
+It must be noted that algorithms on the second tier may utilize entirely different approaches to determine performance indicators. Thus, the most promising categories will be explained and evaluated based on their eligibility:
+
+\begin{description}[style=nextline]
+	\item[Code Analysis and Simulation] 
+	
+	\item[Location Based]
+	
+	\item[Historical Performance Data]
+	
+	\item[System Wide Optimization]
+	 
+\end{description}
+
+bring out the fancy stuff like code analysis, performance history based approach and based on location of the machine
 
 how about simplex?
 
+reason that the second tier may ignore the first one completely
 \section{Exemplary Use Cases}
 
 
