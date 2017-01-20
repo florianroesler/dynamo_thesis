@@ -12,9 +12,9 @@ Even though many solutions for distributing computational workloads among machin
 
 Similar to OpenMP, MPI has matured over decades as a standard solution for low level communications between multiple machines. As such it has also been used frequently in conjunction with OpenCL and inspired frameworks to build upon this combination. Still, MPI remains a significant contributor to program complexity.
 
-On the opposite MapReduce based frameworks like Hadoop MapReduce offer a strict programming model with a fixed API to follow for each implemented algorithm. As such it has also been used to run OpenCL on top of it within Map phases. In addition some frameworks were created by researchers utilizing both technologies in conjunction. As Hadoop MapReduce requires HDFS as the mandatory file system, not only MapReduce nodes but also HDFS nodes have to managed within the cluster. Another restricting factor is the extensive usage of HDFS for writing intermediate results, which has negative impacts on performance.
+On the opposite MapReduce based frameworks like Hadoop MapReduce offer a strict programming model with a fixed API to follow for each implemented algorithm. As such it has also been used to run OpenCL on top of it within Map phases. In addition some solutions were created by researchers utilizing both technologies in conjunction. As Hadoop MapReduce requires HDFS as the mandatory file system, not only MapReduce nodes but also HDFS nodes have to managed within the cluster. Another restricting factor is the extensive usage of HDFS for writing intermediate results, which has negative impacts on performance.
 
-While many of the previously described cluster distribution approaches are used in many professional projects, API forwarding libraries for OpenCL can offload computational workloads across a cluster without impacting programmers or introducing significant cluster management overhead. Available options with these capabilities include SnuCL, VirtualCL and dOpenCL as described in section \ref{related}. While all these frameworks have their own special functionalities, the key feature to be considered is the API forwarding, which has to work stable in order to ensure a well functioning distribution of tasks. Therefore as a first step the three frameworks were installed on the following cluster:
+While many of the previously described cluster distribution approaches are used in many professional projects, API forwarding libraries for OpenCL can offload computational workloads across a cluster without impacting programmers or introducing significant cluster management overhead. Available options with these capabilities include SnuCL, VirtualCL and dOpenCL as described in section \ref{related}. While all mentioned solutions have their own specialties, the key feature to be considered is the API forwarding, which has to work stable in order to ensure a well functioning distribution of tasks. Therefore as a first step the three frameworks were installed on the following cluster:
 
 \begin{table}[htb]
   \centering
@@ -59,7 +59,13 @@ In order to retrieve empirical facts about the performance depending on the netw
 
 From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies. Based on these results the matrix multiplication was executed. As $AB = C$, the two input matrices have to be transferred to the executing device and the resulting matrix has to be retrieved after completing the computation. This means that three data transfers have to be made, which in the case of two $8000x8000$ float matrices are $8000^2 * 4 bytes = 256 Megabytes$ per matrix. In order to distinguish the computational time from the data transfer times, data transfers were measured utilizing the OpenCL profiling options.
 
-[TODO: benchmarks]
+\begin{figure}[H]
+
+\includegraphics[width=1.0\textwidth]{images/data_transfer.pdf}
+\centering
+\caption{dOpenCL Benchmark Remote vs. Local}
+\label{img:data_transfer}
+\end{figure}
 
 It is visible from the obtained results that the local executions have minimal transfer times for the matrices as the only limiting factor is the bus interface between CPU and RAM. One the opposite, data transfers can have significant impact on performance for remote executions as the Ethernet transfers has to be added on top. This is especially true for fast machines that only have an inadequate interconnection speed like Machine B. While for matrix sizes of 8000x8000 the local execution only requires less than 2\% of the time for data transfers, its remote counterpart uses 25\% of the total. In the case of Machine C, the remote transfers profit from the 10 Gbit/s interconnect. As Machine C is considerably slower than Machine B during the computation phase, the fraction of data transfer time from the total is negligible.
 
@@ -68,11 +74,25 @@ Based on the results, one can conclude that the remote computation itself is nea
 \section{High-Level Abstraction}
 \label{abstraction}
 
-In section \ref{aparapi} it was shown how little code and knowledge of internals is required for building OpenCL computations with the help of Aparapi. Including the library in the eventual framework would not only benefit end users due to a simplified programming environment but also greatly assist during the creation of the framework itself. Through Aparapi Java could be used as the overall language of project while abandoning C++ for most parts with the exception of dOpenCL. Due to the choice of a more high level language for the less performance critical code, Java promises faster building time and better maintainability. In order to achieve this, Aparapi has to be connected to dOpenCL to harness the distribution capabilities. First, it has to be evaluated, whether Aparapi performs adequately compared to an original OpenCL algorithm. For that cause the matrix multiplication benchmark from section \ref{distribution} was transformed to Aparapi and executed on Machine C from the benchmark cluster. The matrix sizes as well as the number of iterations is identical to the previous benchmark. As Aparapi translates the Java code for Kernels it has not encountered before, the translation time would skew the results. In a separate benchmark it could be discovered that the translation of a kernel with more than 100 lines of code takes on average less than 250 milliseconds \footnote{$n=100; \bar{x} = 242ms; \sigma = 13ms$}, which for long tasks becomes diminishable. Still, before running the measured iterations, an initial run is executed to translate the Kernel, which is ignored in the final measurements. 
+In section \ref{aparapi} it was shown how little code and knowledge of internals are required for building OpenCL computations with the help of Aparapi. Including the library in the eventual framework would not only benefit end users due to a simplified programming environment but also greatly assist during the creation of the framework itself. Through Aparapi Java could be used as the overall language of project while abandoning C++ for most parts with the exception of dOpenCL. Due to the choice of a more high level language for the less performance critical code, Java promises faster building time and better maintainability. In order to achieve this, Aparapi has to be connected to dOpenCL to harness the distribution capabilities. First, it has to be evaluated, whether Aparapi performs adequately compared to an original OpenCL algorithm. For that cause the matrix multiplication benchmark from section \ref{distribution} was transformed to Aparapi and executed on Machine C from the benchmark cluster. As Aparapi translates the Java code for Kernels it has not encountered before, the translation time would skew the results for the first iteration of a run. Therefore at first the translation time for differently sized Kernels was measured on Machine C with 100 iterations per Kernel:
 
-[TODO: benchmarks]
+\begin{figure}[H]
+	\includegraphics[width=0.5\textwidth]{images/aparapi_translation.pdf}
+	\centering
+	\caption{Average Kernel translation time}
+	\label{img:aparapi_translation}
+\end{figure}
 
-As visible in the results, Aparapi grants similar performance as original OpenCL for the executed use case. This means that the overhead of utilizing a JNI to access OpenCL is only minimal and for big tasks becomes insignificant. Based on the results and on reviewing the generated code from Aparapi it can also be concluded that the code translation for a naive matrix multiplication generates performant code. Therefore it is valid to utilize Aparapi in the envisioned framework. As a first step the connection between Aparapi and dOpenCL should be evaluated. For this cause both components were installed in a development system and tested for interoperability. It was discovered that in their standard versions both pieces of software do not work in conjunction because of several bugs or design decisions. These problems and the corresponding solutions will be explained in the following part:
+It is visible that the translation time of a kernel has a lower bound of ~30ms on Machine C. Additionally it can be concluded that the translation time is correlated to the Kernel size but even for many lines of code remains at around 350ms. In the light of long running computations this time becomes diminishable. Because the translation shall be ignored in the final results an initial run is executed to translate the Kernel before running the measured iterations. The matrix sizes as well as the number of iterations is identical to the benchmark from section \ref{distribution}.
+
+\begin{figure}[H]
+	\includegraphics[width=0.5\textwidth]{images/aparapivsopencl.pdf}
+	\centering
+	\caption{Aparapi vs. Handcrafted OpenCL}
+	\label{img:aparapi_vs_opencl}
+\end{figure}
+
+As visible in the results, Aparapi can reach the performance level of handcrafted OpenCL code, which for the most runs only takes 1-2\% longer to compute. This minuscule difference could be the result of communication overhead through the JNI interface. Because of the similar performance it is valid to utilize Aparapi in the envisioned framework. As a first step the connection between Aparapi and dOpenCL should be evaluated. For this cause both components were installed in a development system and tested for interoperability. It was discovered that in their standard versions both pieces of software do not work in conjunction because of several bugs or design decisions. These problems and the corresponding solutions will be explained in the following part:
 
 \begin{description}[style=nextline]
 	\item [No available devices]
@@ -88,8 +108,8 @@ As visible in the results, Aparapi grants similar performance as original OpenCL
  
 
 \section{Job Design}
-
-With the implemented fixes described in section \ref{abstraction} Aparapi is able to successfully communicate with dOpenCL and deploy tasks to multiple remote devices. This ability enables tasks to be split up into subtasks, which can be computed in parallel. Therefore the envisioned framework has to provide a mechanism for submitting split tasks by the programmer. With such a mechanism the challenge arises how to distribute data among splits. While some problems may have no or little dependency across data, others may require complex interconnections between individual data points. Thus it is inevitable to ensure that each split has all the necessary data for its correct computation. On the opposite, naively including the full data set in each split may lead to serious performance penalties due to longer data transfer times. This becomes especially important with the introduction of remote execution libraries like dOpenCL, where the most likely bottleneck is the network connection.
+\label{job_design}
+With the implemented fixes described in section \ref{abstraction} Aparapi is able to successfully communicate with dOpenCL and deploy tasks to multiple remote devices. This ability enables jobs to be split up into subtasks, which can be computed in parallel. Therefore the envisioned framework has to provide a mechanism for submitting split tasks by the programmer. With such a mechanism the challenge arises how to distribute data among splits. While some problems may have no or little dependency across data, others may require complex interconnections between individual data points. Thus it is inevitable to ensure that each split has all the necessary data for its correct computation. On the opposite, naively including the full data set in each split may lead to serious performance penalties due to longer data transfer times. This becomes especially important with the introduction of remote execution libraries like dOpenCL, where the most likely bottleneck is the network connection.
 
 Based on previous research the following methods were identified:
 
@@ -104,7 +124,7 @@ Based on previous research the following methods were identified:
 	\citeauthor{Kim_2011}\cite{Kim_2011} have developed a mechanism to automatically determine how to split input buffers among subtasks in OpenCL so that only minimal data has to be transferred. Their method is based on sampling memory access patterns before sending the data so that lower and upper memory bounds can be determined.
 		
 	\item [Meta Functions]
-	\citeauthor{stepocl}\cite{stepocl} as well as \citeauthor{distcl}\cite{distcl} employ meta functions that are utilized to determine split data independent from the problem size. These meta functions have to be supplied by the programmer and define the access patterns by the algorithm.
+	\citeauthor{stepocl}\cite{stepocl} as well as \citeauthor{distcl}\cite{distcl} employ meta functions that are utilized to determine split data independent from the problem size. These meta functions have to be supplied by the programmer and define the memory access patterns by the algorithm.
 	
 \end{description} 
 
@@ -152,6 +172,9 @@ public class Addition {
 
 In the example a reusable Aparapi Kernel \textit{AdditionKernel} is defined that computes the sums of the two arrays independent of the general problem size. In the class \textit{Addition} the generated input data is split into smaller parts based on the \textit{tileCount}. Then for each tile the \textit{AdditionKernel} is instantiated and executed. After the execution the individual result is copied into the overall \textit{result} array. In order to grant higher parallelization the \textit{tileCount} could be dynamically changed into a divisor of the array length. This illustrates that writing a split and merge algorithm can be intuitive and not require much code. Additionally, other approaches like \textit{Meta Functions} would still require a substantial amount of code.
 
+explain job/task relation and how Dynamo deals with it
+
+iterative jobs
 
 design considerations and limitations of Aparapi
 
@@ -202,20 +225,29 @@ public abstract class MachineManager {
 }
 \end{lstlisting}
 
-The above code shows the abstract class that handles bookings and releases of instances in the context of dOpenCL. For instance it includes functionalities which ensures that the booked instances are successfully booted and running the dOpenCL daemon before adding them to the cluster as well as removing them. These pieces have been deducted for the sake of readability. The actual implementation of the EC2 \textit{Machine Manager} that accesses the SDK is hidden behind the abstract class so that users only communicate with the generalized class. In order to employ another cloud provider, only the abstract methods have to be implemented.
+The above code shows the abstract class that handles bookings and releases of instances in the context of dOpenCL. In the actual implementation it includes functionalities which ensures that the booked instances are successfully booted and running the dOpenCL daemon before adding them to the cluster as well as removing them. These pieces have been deducted for the sake of readability. The actual implementation of the EC2 \textit{Machine Manager} that accesses the SDK is hidden behind the abstract class so that users only communicate with the generalized class. In order to employ another cloud provider, only the abstract methods have to be implemented that call the respective cloud API.
 
-explain the connection of between a local cloud and an external cloud
-cloud images
-
-also consider security
+An important factor to consider when connecting a local cluster with a remote cloud is security. Remote machines should be sufficiently secured to prevent attackers from taking over machines or utilizing resources via calling the running dOpenCL daemon. By default the EC2 Ubuntu images only allow certificate based SSH, which prevents password attacks on any account. Additionally, Amazon offers the management of Security Groups that put machines behind a virtual firewall. Therefore the security group can be configured to only allow packages from the static IP range of the local cluster, which renders attacks from outside of the local network useless. Any newly booked instance will be included within the Security Group and as such automatically protected.
 
 \section{Scalable Speed}
+
+In section \ref{job_design} the general job design was explained that is employed in the framework. As jobs may contain an arbitrary number of tasks, this number determines the potential for parallelization. The limit exists as every task is only be executed on a single device. For example a matrix multiplication that has been split into four tasks may be computed by four devices in parallel and as such can benefit from a maximum four times speedup based on Amdahl's law. Choosing the appropriate number of tasks is influenced by a performance trade-off: while an increased number of tasks per job offers a greater parallelization and as such a potentially higher performance each task has to be scheduled by the framework and started in its own OpenCL Kernel. Thus, for certain jobs it may be beneficial to keep the number of tasks lower than the number of available devices in the cluster in order prevent performance penalties through overheads.
+
+The general idea behind scaling performance within the framework is based on booking additional resources through a remote cloud when demand is high. Similarly, in the case of low demand resources can be released again in order to minimize costs. Widely employed cluster resource management solutions like Hadoop YARN include functionalities to add or remove nodes dynamically. In a YARN cluster each node is independent and communicates with a central master node that keeps track of utilized resources and handles each compute node as an individual entity. Offering a similar functionality in a dOpenCL based solution differs substantially:
+
+OpenCL and Aparapi were built to run on a single machine and as such include assumptions of limited capabilities concerning changing hardware during operation. For example Aparapi caches device queries to OpenCL as devices are usually added or removed during maintenance procedures when a machine is powered down. dOpenCL overcomes such limitations and enables the central machine to have devices virtually installed by adding nodes to the dOpenCL cluster. dOpenCL therefore extends the OpenCL standard by adding the custom methods \textit{clCreateComputeNodeWWU} and \textit{clReleaseComputeNodeWWU}. 
+
+As OpenCL itself has no multi-machine capabilties it only offers information for the respective built-in devices through the standard API. Therefore all devices appear as if they were installed in the central machine that runs the dOpenCL library. This makes identifying the owning machine per device impossible. Without the relation between devices and machines it can not be ensured that a machine meant to be released is not running any tasks. In order to provide the machine-device relation dOpenCL introduced another method called \textit{clGetDeviceIDsFromComputeNodeWWU}.
+
+The mentioned dOpenCL methods are available to C++ programmers when including the respective header files that contain the extensions. Thus, host code that wants to benefit from dynamic device management has to be modified appropriately. In its standard version Aparapi is bound to the OpenCL standard and has no understanding of the offered dOpenCL extensions. Therefore it is necessary to modify the Aparapi JNI to enable dynamic resource scaling. In order to do so, two new JNI methods are introduced, \textit{addNode} and \textit{removeNode}. Both call the respective dOpenCL functions, with \textit{addNode} also reporting back the available devices of the added node.
 
 introduce general scaling idea based on the job design
 
 show the necessary changes towards dopencl and aparapi
 
 \section{Optimized Scheduling}
+
+
 
 explain general scheduling structure of dynamo
 
@@ -224,6 +256,8 @@ bring out the fancy stuff like performance history based approach and based on l
 how about simplex?
 
 \section{Exemplary Use Cases}
+
+
 
 pure shared local cloud without scaling options
 
@@ -240,4 +274,3 @@ jobs that make sense
 
 job design limitations
 
-\section{Showcase: Dynamo Server}
