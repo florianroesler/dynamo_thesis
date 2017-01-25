@@ -2,7 +2,7 @@
 
 \section{Distribution Approach}
 \label{distribution}
-As portrayed in section \ref{distribution} and \ref{related} many viable options exist to distribute tasks among devices within a single machine as well as across a cluster. This section will explain the reasons for selecting the fitting approaches based on the goals declared in section \ref{goals}.
+As portrayed in section \ref{distribution_basics} and \ref{related} many viable options exist to distribute tasks among devices within a single machine as well as across a cluster. This section will explain the reasons for selecting the fitting approaches based on the goals declared in section \ref{goals}.
 
 At first it is important to evaluate the options for running tasks on multiple devices within a single machine. While low level solutions like OpenMP or OpenACC are matured, they add considerable overhead to programming efforts. All communication and synchronization across multiple cores and devices has to be handled by the programmer, which adds introduces a layer of complexity through the utilization of directives. Thus, programmers have to be knowledgable and experiences in utilizing these directives for an efficient execution.
 
@@ -267,20 +267,28 @@ All of the above approaches do not require insight into the actual performance f
 
 \subsection*{Device Scheduling}
 
-The second scheduling tier gets its input from the preceding tier and has no concerns of the high level job view anymore. Instead it focuses on the actual assignment of tasks to devices. Executing OpenCL code in a heterogeneous environment can lead to drastically different performance numbers based on the implementation and the executing device. For example code that may perform exceptionally well on a GPU may perform poorly on a CPU because of varying memory architectures. Therefore programmers should be empowered to express preferences in terms of the device types that their algorithm will be computed on. Such functionality is included in the framework through a defined \textit{Device Preference} attribute that can be attached to every task. Valid values for the attribute include: \textit{None}, \textit{CPU only}, \textit{CPU preferred}, \textit{GPU only} and \textit{GPU preferred}. With these five preference levels programmers can accordingly specify their favorite device type. Using the \textit{CPU only} or \textit{GPU only} values signals algorithms to only assign the specific type. On the other hand \textit{CPU preferred} and \textit{GPU preferred} indicate that it is appropriate to schedule a GPU or a CPU respectively if the preferred type is not available. While it is possible for schedulers on this tier to ignore the defined preference, all currently implemented solutions within the framework adhere to the specification.
+The second scheduling tier gets its input from the preceding tier and has no concerns of the high level job abstraction. Instead it focuses on the actual assignment of tasks to devices. Executing OpenCL code in a heterogeneous environment can lead to drastically different performance numbers based on the implementation and the executing device. For example code that may perform exceptionally well on a GPU may perform poorly on a CPU because of varying memory architectures. Therefore programmers should be empowered to express preferences in terms of the device types that their algorithm will be computed on. Such functionality is included in the framework through a defined \textit{Device Preference} attribute that can be attached to every task. Valid values for the attribute include: \textit{None}, \textit{CPU only}, \textit{CPU preferred}, \textit{GPU only} and \textit{GPU preferred}. With these five preference levels programmers can accordingly specify their favorite device type. Using the \textit{CPU only} or \textit{GPU only} values signals algorithms to only assign the specific type. On the other hand \textit{CPU preferred} and \textit{GPU preferred} indicate that it is appropriate to schedule a GPU or a CPU respectively if the preferred type is not available. While it is possible for schedulers on this tier to ignore the defined preference, all currently implemented solutions within the framework adhere to the specification.
 
-It must be noted that algorithms on the second tier may utilize entirely different approaches to determine performance indicators. Thus, the most promising categories will be explained and evaluated based on their eligibility:
+It must be noted that algorithms on the second tier may utilize entirely different approaches to determine performance indicators. Thus, the most promising options will be explained and evaluated based on their eligibility.
 
-\begin{description}[style=nextline]
-	\item[Code Analysis and Simulation] 
-	
-	\item[Location Based]
-	
-	\item[Historical Performance Data]
-	
-	\item[System Wide Optimization]
-	 
-\end{description}
+For decades it has been an significant challenge to foresee execution times of algorithms on a given system. Execution times are especially considered in real time systems such as cars, airplanes or space probes where it is mandatory to ensure that an algorithm finishes under a specified boundary, called worst case execution time (abbrv. WCET). In order to obtain such timings one may employ various methods such as static code analysis or simulations\cite{wcet}.
+
+In static code analysis algorithms are taken apart for the purpose of predicting control flow features such as loop counts without executing the actual code\cite{loopbound}\cite{sweet}. While there are formal approaches to gain insights about the executable instructions, estimating the running time is another great challenge. As modern processors have become increasingly complex due to the introduction of caches, pipelines and multi core architectures, instruction times may vary significantly\cite{wcet}. In the light of OpenCL this step becomes even more difficult through the availability of different device types and vendors, which inherit distinct architectures.
+
+Simulations allow to draw conclusions about algorithm timings by running it on an abstract representation of the actual hardware\cite{wcet}. While \citeauthor{multi2sim} have proposed a framework for simulating CPUs and GPUs\cite{multi2sim}, the main drawback of such an approach is again the abundance of different hardware designs and architectures supported by OpenCL. In order to cover the majority of possible devices, many different simulators would be required. For instance, each NVIDIA GPU architecture would demand a dedicated simulator.
+
+While code analysis and simulation do not employ the actual hardware, benchmarks may be used to obtain indicators about the performance of a specific device for a given task. For instance, \citeauthor{quantitative_performance} have proposed a model in which they measure key performance indicators like buffer bandwidth of a GPU\cite{quantitative_performance}. These measurements are then used to predict execution times of Kernels based on the identified bottlenecks by analyzing the instructions at hand. Other approaches run the Kernels with varying parameters in order to infer the dominant performance factors\cite{gpgpu_performance}.
+
+All of the presented approaches are promising in their respective field of application. Still, the major limiting factor is the apparent focus on a specific architecture, which makes the utilization too complex in the context of OpenCL. In order to cover all supported devices many different models would have to be employed, with each upcoming hardware architecture also introducing new models to Dynamic OpenCL.
+
+With the distribution of tasks across a network not only the performance of the execution devices matters but also the speed of the network connection itself. This becomes especially important when utilizing resources from a distant cloud, which inherently can not offer the same bandwidth and latency as a local network. For example, in a benchmark a local cluster with 10 Gbit/s interconnects installed could only reach bandwidths of 190 Mbit/s when communicating to a small EC2 instance. Such asymmetric connections could significantly affect data intense Kernels where the data transfers might exceed computation times on a slow connection. Thus, sending such Kernels to a high performance cloud device could be worse than sending it to a slower local machine.
+
+A naive approach that combines both measurements for device performance as well as network performance is the usage of historical data. With the assumption that jobs are split in many equally sized tasks one can presume the best suited device of a Kernel from previous runs on various devices within the cluster. As Dynamic OpenCL schedules only a single task on a device at a time, tasks do not interfere performance wise. Therefore the execution time of a Kernel is not affected by other Kernels and should accordingly remain stable across multiple runs. This behavior could also be observed during the benchmarks in section \ref{distribution} and \ref{abstraction} where multiple runs of the same Kernel showed little standard deviations. 
+
+[TODO: explain exact book keeping]
+Local vs Cloud
+Historical Performance Data
+Collecting former runs
 
 bring out the fancy stuff like code analysis, performance history based approach and based on location of the machine
 
