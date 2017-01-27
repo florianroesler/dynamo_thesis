@@ -5,13 +5,13 @@ There exist many research papers that cover partial problems of the goals that t
 
 \section{OpenCL Single Machine Distribution}
 
-\subsection*{Achieving a Single Compute Device Image in OpenCL for Multiple GPUs\cite{Kim_2011}}
-Framework that distributes workloads across multiple GPUs on a single machine. The memory of all included GPUs is consolidated in a single virtual memory space.
-Instead of launching the original OpenCL kernels, the kernels translated to CUDA and launched from the CUDA platform. In order to achieve an improved distribution, the OpenCL code is first translated to C to sample the memory access patterns.
+\subsection*{Achieving a Single Compute Device Image in OpenCL for Multiple GPUs}
+\citeauthor{Kim_2011} propose a framework that distributes workloads across multiple GPUs on a single machine\cite{Kim_2011}. The memory of all included GPUs is consolidated in a single virtual memory space.
+Instead of launching the original OpenCL kernels, the kernels are translated to CUDA and launched from the CUDA platform. In order to achieve an improved distribution, the OpenCL code is first translated to C to sample the memory access patterns.
 
-Its distribution method is based on the memory consistency model of OpenCL, which states that "an update to a global memory location by a work-group does not need to be visible to other work-groups in the same kernel index space during the kernel execution" and a general independence of the execution of work groups (except memory barriers).
+In order to reduce data transfers, not all data is transferred to every device but only the minimal necessary data for correct execution of every distributed work group. This is achieved by analyzing the sampled memory accesses and thus receiving a lower and upper memory bound of used memory addresses.
 
-In order to reduce data transfers, not all data is transferred to every device but only the minimal necessary data for correct execution of every distributed work group. This is achieved by sampling the memory access and thus receiving a lower and upper memory bound of used memory addresses.
+Its distribution method is based on the memory consistency model of OpenCL, which states that "an update to a global memory location by a work-group does not need to be visible to other work-groups in the same kernel index space during the kernel execution" and a general execution independence of work groups with the exception of memory barriers.
 
 \subsection*{SOCL\cite{socl}}
 SOCL is a framework offering the following key points:
