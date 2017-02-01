@@ -17,9 +17,31 @@ discuss inexplicable results
 
 \section{Workloads}
 
+In this section the various utilized algorithms that are employed in the respective benchmarking scenarios will be analyzed. On the one hand it is necessary to understand the complexity class of a computation for a suitable interpretation of the results. On the other hand the amount of data transfers must be analyzed as well as strategies for the separation of data in order to parallelize tasks with Dynamic OpenCL.
+
 \subsection*{Matrix Multiplication}
+In its naive algorithm matrix multiplications belongs to the complexity class $O(n^3)$. Still, there exist much more sophisticated algorithms improving the complexity class like Strassen's algorithm with $O(n^{2.807})$\cite{strassen} or the approach by Coppersmith with $O(n^{2.376})$\cite{coppersmith}. For the sake of simplicity, in all benchmarks the naive algorithm will be used.
+
+It must be noted that a matrix multiplication can not be perfectly split for parallelization. Instead, one of the matrices has to be present as a whole, while the other can be divided. This means that there is a growing overhead correlating to the amount of splits. The size of the data transfer for the input is calculated as follows for two square matrices that have $s$ columns, $s$ rows and therefore are comprised of $s^2$ elements:
+
+$n$ is the number of splits with $0 < n <= size$.
+
+Therefore the number of transferable elements is
+$e = n*(\frac{s^2}{n}+s^2) = s^2 + n*s^2$.
+
+For instance, two 16x16 matrices that are multiplied will yield the following input data sizes depending on the number of splits:
+
+When $n=1$: $16^2+1*16^2 = 512$
+
+When $n=2$: $16^2+2*16^2 = 768$
+
+When $n=4$: $16^2 + 4*16^2 = 1280$
+
+This means that dividing the data results in a 50\% increase of input data for each additional split. Therefore while an increased parallelization may grant faster computational capabilities of a cluster it also requires more data transfers.
 
 \subsection*{Mandelbrot Set}
+
+
 
 \subsection*{K-Means Clustering}
 
