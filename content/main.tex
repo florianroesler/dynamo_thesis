@@ -35,7 +35,7 @@ While many of the previously described cluster distribution approaches are used 
     \label{table:cluster_setup_1}
 \end{table}
 
-As a first step, each of the frameworks was installed on the cluster following their respective included documentation. In the case of SnuCL the installation could not be completed using versions 1.3.2 and 1.3.3. While VirtualCL 1.24 could be installed without issues, executing various OpenCL programs led to inconsistent Segmentation Faults. The last candidate, dOpenCL 0.4.0r1819, was installed successfully and also managed to run the previously failed programs without issues. Therefore dOpenCL was chosen for more detailed benchmarks to investigate performance caveats.
+Every frameworks was installed following its respective included documentation. In the case of SnuCL the installation could not be completed using versions 1.3.2 and 1.3.3. While VirtualCL 1.24 could be installed without issues, executing various OpenCL programs led to inconsistent Segmentation Faults. The last candidate, dOpenCL 0.4.0r1819, was installed successfully and also managed to run the previously failed programs without issues. Therefore dOpenCL was chosen for more detailed benchmarks to investigate performance caveats.
 
 Due to its architecture, dOpenCL has to communicate back and forth with remote devices over the network in order to send inputs and retrieve results. Thus, computations can be highly impacted by network transfers when the algorithm performs relatively quickly in comparison to the required input data. In the interest of creating such a data heavy algorithm, a matrix multiplication was implemented in OpenCL, which follows the naive school algorithm. This means that the complexity of the algorithm is $O(n^3)$. The only performance optimization that was undertaken is the transposition of the second matrix, which greatly improves cache efficiency.
 
@@ -57,7 +57,7 @@ In order to retrieve empirical facts about the performance depending on the netw
 	\label{table:cluster_interconnect_benchmarks}
 \end{table}
 
-From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies. Based on these results the matrix multiplication was executed. As $AB = C$, the two input matrices have to be transferred to the executing device and the resulting matrix has to be retrieved after completing the computation. This means that three data transfers have to be made, which in the case of two $8000x8000$ float matrices are $8000^2 * 4 Bytes = 256 Megabytes$ per matrix. In order to distinguish the computational time from the data transfer times, data transfers were measured utilizing the OpenCL profiling options.
+From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies. Based on these results the matrix multiplication was executed. As $AB = C$, the two input matrices have to be transferred to the executing device and the resulting matrix has to be retrieved after completing the computation. This means that three data transfers have to be made, which in the case of two $8000x8000$ float matrices are $8000^2 * 4\ Bytes = 256\ Megabytes$ per matrix. In order to distinguish the computational time from the data transfer times, data transfers were measured utilizing the OpenCL profiling options.
 
 \begin{figure}[H]
 
@@ -205,7 +205,7 @@ When providing a shared cluster that can be used by multiple parties, certain tr
 
 Interconnecting the framework with EC2 requires including the AWS software development kit (abbrv. SDK), which is available for Java among many other languages. Through the SDK, the API for reserving and releasing instances can be accessed. Additionally, an Amazon Machine Image (abbrv. AMI) is required so that newly launched instances will have OpenCL installed and run the dOpenCL daemon by default on startup. For this cause an Ubuntu 14.04 based image was created with the appropriate drivers and dOpenCL installed, which is started right after booting the machine.
 
-Ordering and releasing machines within the framework shall be handled by a class called \textit{Machine Managger}, abstract the actual implementation of the utilized SDK in order to enable users to interchange the underlying cloud provider:
+Ordering and releasing machines within the framework shall be handled by a class called \textit{Machine Manager}, abstract the actual implementation of the utilized SDK in order to enable users to interchange the underlying cloud provider:
 
 
 \begin{lstlisting}
@@ -284,12 +284,16 @@ With the distribution of tasks across a network not only the performance of the 
 
 A naive approach that combines both measurements for device performance as well as network performance is the usage of historical data. With the assumption that jobs are split in many equally sized tasks one can presume the best suited device of a Kernel from previous runs on various devices within the cluster. As Dynamic OpenCL schedules only a single task on a device at a time, tasks do not interfere with one another performance wise. Therefore the execution time of a Kernel is not affected by other Kernels and should accordingly remain stable across multiple runs. This behavior could also be observed during the benchmarks in section \ref{distribution} and \ref{abstraction} where multiple runs of the same Kernel showed little standard deviations.
 
+In order to offer algorithms on the second tier valuable data, several analytical features are added to Aparapi and Dynamic OpenCL:
+\begin{description}[style=nextline]
+	\item[Kernel Data Size] 
+	Aparapi is extended by adding a method to the Kernel class that reports back the actual size of the overall Kernel including its data. The size is gained by employing Java reflection and thus identifying used data types and data structures. As Aparapi offers explicit memory management not all of the data of a Kernel must be transferred. Analyzing the surrounding Java code to identify the respective memory management calls from within the Kernel is impossible. Therefore the returned size value can only act as an approximation for the real sum of transferred data.
+	\item[Historical Data Transfer] 
+	While knowing the exact amount of transferable data beforehand in the context of explicit memory management is impossible, retaining these values in the aftermath of a Kernel execution is feasible. For this cause the memory management calls of Aparapi are modified to accumulate the size of the supplied data structure in a Kernel attribute. With this functionality the total amount of transferred data is available after a Kernel has been executed. Then the attribute can be utilized by schedulers to conclude decisions for future Kernels of the same job.
+	\item[Performance Cache]
+	Dynamic OpenCL implements a mechanism to retain execution times of Kernels for every device it was run on. The observed timespan reaches from the deployment of the Kernel from its host code until the end of execution, thus including network transfers. Therefore the measurement takes into account different locations of the devices within the network. This means that a cloud device should yield slower execution times than a similar local device due to the data transfer penalties. With the resulting data schedulers can conclude decisions either based on individual devices or grouped by model.
+\end{description}
 
-
-explain exact book keeping
-Local vs Cloud
-Historical Performance Data
-Collecting former runs
 
 bring out the fancy stuff like code analysis, performance history based approach and based on location of the machine
 
