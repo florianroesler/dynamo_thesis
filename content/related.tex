@@ -54,7 +54,7 @@ During compilation, STEPOCL identifies available devices that it can distribute 
 
 \subsection*{Fluidic Kernels\cite{fluidic}}
 
-The paper proposes distributing Kernels among the CPU and GPU of a machine. They showcase two workloads that benefit more from either CPU or GPU. In order to support dynamic executions each Kernel is launched each on the CPU and GPU, with the GPU executing the whole OpenCL range. The CPU starts execution of work groups from the other end of the range in so called subkernels. After each finished subkernel, the CPU reports to the GPU the finished work group IDs. During execution of each work group, the GPU checks whether the current work group has finished yet and can therefore identify when it has reached work groups that have already been computed by the CPU and thus finish its execution.
+The paper proposes parallelizing Kernels among the CPU and GPU of a machine. They showcase two workloads that benefit rather from either CPU or GPU. In order to execute a Kernel in parallel on both devices, it is launched on the CPU as well as the GPU. While the GPU executes the whole OpenCL range from the front the CPU starts execution of work groups from the other end of the range in so called subkernels. After each finished subkernel, the CPU reports to the GPU the current work group ID. During execution of each work group, the GPU checks whether the current work group has been processed yet and can therefore identify when it has reached work groups that have already been computed by the CPU. Due to this mechanism the overall task is distributed according to the computational capabilities of the participating devices.
 
 \subsection*{Qilin\cite{qilin}}
 
