@@ -1,0 +1,51 @@
+\chapter{Benchmarking Methodology}
+
+\section{Measurements}
+
+
+
+\section{Workloads}
+
+In this section the various utilized algorithms that are employed in the respective benchmarking scenarios will be analyzed. On the one hand it is necessary to understand the complexity class of a computation for a suitable interpretation of the results. On the other hand the amount of data transfers must be analyzed as well as strategies for the separation of data in order to distribute tasks to multiple machines.
+
+\subsection*{Matrix Multiplication}
+In its naive algorithm to multiply two square matrices of size $n\times n$ with each other, for every element in the resulting matrix of size $n\times n$, $n$ multiplications have to be performed. Therefore the computation belongs to the complexity class $O(n^3)$. Still, there exist much more sophisticated algorithms improving the complexity class like Strassen's algorithm with $O(n^{2.807})$\cite{strassen} or the approach by Coppersmith with $O(n^{2.376})$\cite{coppersmith}. For the sake of simplicity, in all benchmarks the naive algorithm will be used.
+
+It must be noted that a matrix multiplication can not be perfectly split for parallelization. Instead, one of the matrices has to be present as a whole, while the other can be divided. This means that there is a growing overhead correlating to the amount of splits. The size of the data transfer for the input is calculated as follows for two square matrices that have $n$ columns, $n$ rows and therefore are comprised of $n^2$ elements:
+
+$s$ is the number of even splits with $0 < s <= n$.
+
+Therefore the number of transferable elements is
+$e = s*(\frac{n^2}{s}+n^2) = n^2 + s*n^2$.
+
+For instance, two 16x16 matrices that are multiplied will yield the following input data sizes depending on the number of splits:
+
+When $s=1$: $16^2+1*16^2 = 512$
+
+When $s=2$: $16^2+2*16^2 = 768$
+
+When $s=4$: $16^2 + 4*16^2 = 1280$
+
+This means that dividing the data results in a 50\% increase of input data for each additional split. Therefore while an increased parallelization may grant faster computational capabilities of a cluster it also requires more data transfers.
+
+\subsection*{Mandelbrot Set}
+
+Mandelbrot sets can be used to draw fractals by calculating membership to the set for each coordinate of an image. Assuming a square image the computation belongs to the complexity class $O(n^2)$. An important feature of Mandelbrot calculations is the possibility to increase computation times without growing the size of the image. This can be done by raising the iterations factor, which determines the precision of the resulting picture. Therefore Mandelbrot set computations can be very time consuming while requiring only small input data.
+
+In terms of parallelization Mandelbrot sets can be perfectly split as only the coordinates of a point are required to compute membership. Thus, there is no data overhead involved in dividing the computation to multiple machines.
+
+\subsection*{N-Body Problem}
+
+The n-body problem is mainly used in astrophysics to determine celestial movement, which is heavily influenced by gravitational effects. Celestial bodies act forces on each other, even when distances are huge. For instance, the earth is influenced by every existing object in the universe but most of these forces are very weak in comparison to the sun's gravitation. Calculating the n-body problem without approximations therefore requires to accumulate forces by every object for every other celestial body. Thus, the complexity class is $O(n^2)$.
+
+It must be noted that dividing the n-body problem for parallelization leads to significant overhead as each split requires the whole dataset to calculate influences by every object. This means that for $n$ splits the data set has to be transfered $n$ times as well.
+
+\subsection*{K-Means Clustering}
+
+K-means clustering is an iterative data mining algorithm used for assigning $n$ objects to $k$ clusters. In order to determine membership of an object, its distance (e.g. Euclidean distance) to each of the $k$ clusters is determined, which reveals the nearest cluster. This cluster then inhibits the object. For each iteration the cluster coordinates are reassigned to their respective centroids and the membership of each object is recalculated. This is repeated for a fixed number of times or until a certain accuracy is reached in which the centroids converge.
+
+With $n$ objects, $k$ clusters, $d$ dimensions and $i$ iterations the complexity of k-means clustering becomes $O(n*k*d*i)$. In order to simplify this, all variables but the number of objects will be fixed, thus leading to a complexity of $O(n)$.
+
+The computation can be parallelized per iteration where each split receives its partial set of objects as well as all cluster coordinates. Therefore the only duplicated data are the centroids of the clusters, which in practice are of significantly smaller number than objects.
+
+[TODO: maybe explain that after each iteration the cluster coordinates are calculated in host code]

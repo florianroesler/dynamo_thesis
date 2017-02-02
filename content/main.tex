@@ -253,7 +253,7 @@ As Dynamic OpenCL is supposed to offer its services to variously structured jobs
 
 For a flexible approach that can be configured on the respective requirements of the cluster a pluggable two tiered scheduling architecture is proposed. This enables administrators to combine scheduling algorithms based on the requirements of the system. 
 
-\subsection*{Job Scheduling}
+\subsection{Job Scheduling}
 The first scheduling tier only considers the system state on a job abstraction level without having any knowledge about the actual task structure or available devices in the cluster. Instead this tier is mainly concerned about ensuring predefined fairness policies and as such controls which jobs are eligible for sending their workloads to the next scheduling tier. Exemplary algorithms for this tier are the following:
 
 \begin{description}[style=nextline]
@@ -267,7 +267,7 @@ All of the above approaches do not require insight into the actual performance f
 
 [TODO: explain why scheduler should send more than one job even in fifo]
 
-\subsection*{Device Scheduling}
+\subsection{Device Scheduling}
 The second scheduling tier gets its input from the preceding tier and has no concerns of the high level job abstraction. Instead it focuses on the actual assignment of tasks to devices. Executing OpenCL code in a heterogeneous environment can lead to drastically different performance numbers based on the implementation and the executing device. For example code that may perform exceptionally well on a GPU may run poorly on a CPU because of varying computational capabilities. Therefore programmers should be empowered to express preferences in terms of the device types that their algorithm should be computed on. Such functionality is included in the framework through a defined \textit{Device Preference} attribute that can be attached to every task. Valid values for the attribute include: \textit{None}, \textit{CPU only}, \textit{CPU preferred}, \textit{GPU only} and \textit{GPU preferred}. With these five preference levels programmers can accordingly specify their favorite device type. Using the \textit{CPU only} or \textit{GPU only} values signals algorithms to only assign the specific type. On the other hand \textit{CPU preferred} and \textit{GPU preferred} indicate that it is appropriate to schedule a GPU or a CPU respectively if the preferred type is not available. While it is possible for schedulers on this tier to ignore the defined preference, all currently implemented solutions within the framework adhere to the specification. As such the included \textit{Device Preference Scheduler} is the most basic algorithm following the specification. It takes the given tasks one by one and assigns it to the first unutilized matching device that is available.
 
 It must be noted that algorithms on the second tier may utilize entirely different approaches to assign tasks to devices. While it might be feasible in certain environments to randomly send tasks to devices, more thoughtful approaches may improve the overall efficiency of the system. As more analytical algorithms are likely to focus on performance indicators, the most promising options will be explained and evaluated based on their eligibility.
