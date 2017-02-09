@@ -2,7 +2,59 @@
 
 \section{Measurements}
 
+taken on bare metal machines
+no other users on the system
+make sure that unnecessary processes are killed
+for network based tests measure real network speed beforehand
+talk about JVM specifics
+always report the arithmetic mean and standard deviation
+in case of short running measurements >30 runs
+in case of long running measurements with different problem sizes >5 runs per size but with >30 runs across all problem sizes
 
+\section{Cluster Composition}
+\label{cluster_composition}
+Throughout the research various benchmarks are presented to highlight caveats and performance differences of the showcased solutions. For this reason a standard set of hardware shall be used that remains constant across various benchmarks. The following table displays the machine classes that are utilized throughout the work:
+
+\begin{table}[htb]
+	\centering
+	\begin{adjustbox}{width=1\textwidth}
+		\small
+		\begin{tabular}{l | l | l | l}
+			~                     & Class A                  	& Class B                  \\
+			\hline
+			CPU                   &  4x Intel Xeon CPU E7-8890 v3 	& Intel Xeon CPU E3-1284L v4 \\
+			Logical Cores         &  144 	& 8 \\
+			RAM                   &  128GB                       	& 32GB                       \\
+			Interconnect          &  1 GBit/s                  	& 10 GBit/s                  \\
+			OS                    &  Ubuntu 16.04.1 64 Bit      	& Ubuntu 16.04.1 64 Bit      \\
+			OpenCL Driver Version &  1.2.0.10002                   & 1.2.0.25                   \\
+		\end{tabular}
+	\end{adjustbox}
+	
+	\caption{Cluster Composition}
+	\label{table:cluster_setup_1}
+\end{table}
+
+All of the machines belonging to the above classes are installed in the same local network and connected via the specified interconnects. In order to retrieve empirical facts about the performance depending on the network interconnection, the real network performance of the machines has to be measured. Therefore tests were undertaken from a machine within the same network using iperf3 and ping. Both utilities were executed subsequently over the duration of 60 seconds with a measurement taken each second. The results are displayed in table \ref{table:cluster_interconnect_benchmarks}.
+
+\begin{table}[!htb]
+	\centering
+	\begin{adjustbox}{width=0.5\textwidth}
+		\small
+		\begin{tabular}{l | l | l}
+			~                     & Machine A                 			& Machine B                  \\
+			\hline
+			iperf3                & 941.31 Mbit/s ($\sigma = 0.95$) 	& 9.409 Gbit/s ($\sigma = 0.051$) \\
+			ping                  & 0.186 ms ($\sigma = 0.022$)  		& 0.14 ms ($\sigma = 0.012$)  \\
+		\end{tabular}
+	\end{adjustbox}
+	
+	\caption{Cluster Interconnect Benchmarks}
+	\label{table:cluster_interconnect_benchmarks}
+\end{table}
+
+[TODO: include TCP overhead]
+From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies.
 
 \section{Workloads}
 
