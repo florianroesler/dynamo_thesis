@@ -90,11 +90,11 @@ The results indicate that employing a second machine that is connected through a
 
 \section{Hybrid Distribution}
 
-After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. For this, the benchmarks used in \ref{local_distribution} were applied to a cluster that holds local machines as well as resources that were booked on the Amazon EC2 cloud. In the setup only a single local machine of class B is employed. It serves as a management node as well as an execution node. 
+After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. For this, the benchmarks used in \ref{local_distribution} are applied to a cluster that holds local machines as well as resources that are booked on the Amazon EC2 cloud. In the setup only a single local machine of class B is employed. It serves as a management node as well as an execution node. 
 
-For the cloud resources a high performance computation instance type was chosen: the c4.8xlarge instances provide 36 Intel Xeon E5-2666 v3 cores at 2.9 GHz as well as 60 GB of RAM. Amazon also promises to connect these instances through 10 Gbit/s interconnects.
+For the cloud resources a high performance computation instance type is chosen: the c4.8xlarge instances provide 36 Intel Xeon E5-2666 v3 cores at 2.9 GHz as well as 60 GB of RAM. Amazon also promises to connect these instances through 10 Gbit/s interconnects.
 
-While 10 Gbit/s interconnects proved to be a very potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster is set in Potsdam and should therefore be connected to the geographically closest region that is available on the EC2 cloud, which is in Frankfurt. As a first measure the interconnection speed between the two locations is measured by using iperf and ping from the local machine to a cloud machine over a minute. Then the same was done from a another c4.8xlarge machine within the EC2. The following table shows the network performance results:
+While 10 Gbit/s interconnects proved to be a very potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster is set in Potsdam and should therefore be connected to the geographically closest region that is available on the EC2 cloud, which is in Frankfurt. As a first measure the interconnection speed between the two locations is measured by using iperf and ping from the local machine to a cloud machine over a minute. Then the same is done from a another c4.8xlarge machine within the EC2. The following table shows the network performance results:
 
 \begin{table}[!htb]
 	\centering
@@ -112,7 +112,7 @@ While 10 Gbit/s interconnects proved to be a very potent solution when distribut
 	\label{table:local_vs_remote_ec2}
 \end{table}
 
-While machines within EC2 may profit from fast network connections, accessing the same machines remotely from a local cluster offers significantly higher latencies and lower bandwidths. A reason for the low remote performance numbers could be bottlenecks within the local network that reduce the bandwidth significantly. In order to investigate this theory three machines of type c4.8xlarge were launched and iperf3 tests run on them in parallel from a single local machine. The results are shown in the following figure:
+While machines within EC2 may profit from fast network connections, accessing the same machines remotely from a local cluster offers significantly higher latencies and lower bandwidths. A reason for the low remote performance numbers could be bottlenecks within the local network that reduce the bandwidth significantly. In order to investigate this theory three machines of type c4.8xlarge. Then a single local machine launches iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in the following figure:
 
 \begin{figure}[H]
 	\includegraphics[width=0.5\textwidth]{images/ec2_stacked_network_performance.pdf}
@@ -121,11 +121,11 @@ While machines within EC2 may profit from fast network connections, accessing th
 	\label{img:EC2 Parallel Network Performance}
 \end{figure}
 
-It is visible that the total network performance may reach 480 MBit/s in total for some data points, which disproves that the bottleneck lies within the local network. Instead it appears as if the EC2 only provides limited network capabilities per instance when accessed from outside of their cluster.
+It is visible that the total network performance reaches 480 MBit/s in total for some data points, which disproves that the bottleneck lies within the local network. Instead it appears as if the EC2 only provides limited network capabilities per instance when accessed from outside of their cluster.
 
 \subsection{Single Job Performance}
 
-Similar to the benchmarks conducted in \ref{single_job_performance}, matrix multiplication and Mandelbrot sets of differing sizes will be computed first on a single local machine and then on an additional c4.8xlarge instance.
+Similar to the benchmarks conducted in \ref{single_job_performance}, matrix multiplication and Mandelbrot sets of differing sizes are computed first on a single local machine and then on an additional c4.8xlarge instance.
 
 \begin{figure}[H]
 	\includegraphics[width=1.0\textwidth]{images/hybrid_matrix_multiplication.pdf}
@@ -134,7 +134,7 @@ Similar to the benchmarks conducted in \ref{single_job_performance}, matrix mult
 	\label{img:hybrid_matrix_multiplication}
 \end{figure}
 
-Figure \ref{img:hybrid_matrix_multiplication} displays the results for the matrix multiplications. It is visible that adding a cloud computation device for this workload adds only marginal performance improvements or even slows down the process in the case of smaller problem sizes. With increasing sizes the performance benefits are becoming significant, peaking at around 50\% for the largest measured size. Even the 50\% increase in performance is not very promising as the c4.8xlarge instance brings in 36 additional cores and should therefore add much more computational capabilities to the 8 cores of the local class B machine. As the connection between both networks is much slower than the typical bus speeds of the c4.8xlarge, it mainly remains underutilized due to the increased transfer times.
+Figure \ref{img:hybrid_matrix_multiplication} displays the results for the matrix multiplications. It is visible that adding a cloud computation device for this workload adds only marginal performance improvements or even slows down the process in the case of smaller problem sizes. With increasing sizes the performance benefits become significant, peaking at around 50\% for the largest measured size. Even the 50\% increase in performance is not very promising as the c4.8xlarge instance brings in 36 additional cores and should therefore add much more computational capabilities to the already employed 8 cores of the local class B machine. As the connection between both networks is much slower than the typical bus speeds of the c4.8xlarge, it mainly remains underutilized due to the increased transfer times.
 
 
 \begin{figure}[H]	
@@ -145,11 +145,11 @@ Figure \ref{img:hybrid_matrix_multiplication} displays the results for the matri
 \end{figure}
 
 
-For the second benchmark the Mandelbrot set is used again, which promises better performance than matrix multiplications on a hybrid setup due to its lower data requirements. The results of the measurements are shown in figure \ref{img:hybrid_mandelbrot}. In fact the c4.x8large can greatly improve the overall system performance through its 36 cores. Even for small problem sizes it can already provide significant benefits but especially for the larger sizes it can speed up the execution by around x2.5. Thus it can be concluded that the data requirements of a workload have an even greater impact on performance for hybrid setups than on an entirely local setup.
+For the second benchmark the Mandelbrot set is used again, which promises better performance than matrix multiplications on a hybrid setup due to its lower data requirements. The results of the measurements are shown in figure \ref{img:hybrid_mandelbrot}. In fact the c4.x8large can greatly improve the overall system performance through its 36 cores. Even for small problem sizes it already provides significant benefits but especially for the larger sizes it can speed up the execution by around x2.5. Thus it is concluded that the data requirements of a workload have an even greater impact on performance for hybrid setups than on an entirely local setup.
 
 \subsection{Job Suite Performance}
 
-In order to simulate a shared hybrid cluster environment the same tests as in section \ref{job_suite_performance} are conducted. That means that the equal selection of jobs is submitted to the cluster, which consists of a single local machine of class B, which serves for management and execution, as well as a variable number of c4.8xlarge instances provided by Amazon. Again, for scheduling a Round Robin approach paired with the performance based device scheduler is utilized.
+In order to simulate a shared hybrid cluster environment the same tests as in section \ref{job_suite_performance} are conducted. That means that the equal selection of jobs is submitted to the cluster, which consists of a single local machine of class B. This machine serves for management and execution in parallel. The cloud resources are comprised of a variable number of c4.8xlarge instances provided by Amazon. Again, for scheduling a Round Robin approach paired with the historical performance based device scheduler is utilized.
 
 \begin{figure}[H]	
 	\includegraphics[width=1.0\textwidth]{images/hybrid_full_benchmark_performance_based.pdf}
@@ -158,9 +158,9 @@ In order to simulate a shared hybrid cluster environment the same tests as in se
 	\label{img:hybrid_benchmark_results}
 \end{figure}
 
-Figure \ref{img:hybrid_benchmark_results} shows the results of the benchmark with various numbers of cloud resources. It is visible that the performance benefits are quite insignificant in relation to potential computational capability of the c4.8xlarge instance types. Scaling the cluster to two machines with one c4.8xlarge gives a 28\% performance increase. Adding another c4.8xlarge instance grants an overall 55\% faster execution compared to the single local machine. When a third instance is added, it becomes obvious that a barrier is hit for this benchmark as the speedup compared to two cloud machines is minimal. As shown earlier the EC2 offers low network bandwidth when accessed by the local cluster. While the performance based scheduler can take these factors into account through its history based approach it still has to run a partial of a job at least once to gain a performance measurement. Therefore it is very likely that tasks with big data transfers may be assigned to cloud machines. 
+Figure \ref{img:hybrid_benchmark_results} shows the results of the benchmark with various numbers of cloud resources. It is visible that the performance benefits are quite insignificant in relation to the potential computational capability of the c4.8xlarge instance types. Scaling the cluster to two machines with one c4.8xlarge gives a 28\% performance increase. Adding another c4.8xlarge instance grants an overall 55\% faster execution compared to the single local machine. When a third instance is introduced, it becomes obvious that a barrier is hit for this benchmark as the speedup compared to two cloud machines is minimal. As shown earlier the EC2 offers low network bandwidth when accessed by the local cluster. While the performance based scheduler can take these factors into account through its history based approach it still has to run a partial of a job at least once to gain a performance measurement. Therefore tasks with big data transfers may be assigned several times to different cloud machines, thus resulting in slow execution times for these Kernels. 
 
-In order to optimize the assignment of data intense jobs to the appropriate devices a new scheduler is built that is aware of the different networks. For this all available are marked whether they are originating from the local cluster or the cloud provider. The scheduler then ignores the task order given by the first scheduling tier, e.g. Round Robin. Instead it orders the tasks by the amount of data they are holding and assigns the tasks to devices from either end. Cloud devices receive tasks with little data while the local devices are assigned the ones with the biggest data sizes. Thus tasks should reach cloud devices much faster and the scheduling it not reliant on historical data. With the new scheduler the benchmark is executed again.
+In order to optimize the assignment of data intense jobs to the appropriate devices a new scheduler is built that has awareness of the different network locations. For this all available devices are marked whether they are originating from the local cluster or the cloud provider. The scheduler then ignores the task order given by the first scheduling tier, e.g. Round Robin, and imposes its own order. In fact it sorts the assignable Kernels by the amount of data they are comprised of and assigns them from either end: cloud devices receive tasks with little data while local devices are assigned Kernels with the biggest data sizes. Thus tasks should reach cloud devices much faster and the scheduling is not reliant on historical data anymore. With the new scheduler the benchmark is executed again.
 
 \begin{figure}[H]	
 	\includegraphics[width=1.0\textwidth]{images/hybrid_full_benchmark_network_based.pdf}
@@ -169,4 +169,5 @@ In order to optimize the assignment of data intense jobs to the appropriate devi
 	\label{img:hybrid_benchmark_results_network_aware}
 \end{figure}
 
-Figure \ref{img:hybrid_benchmark_results_network_aware} shows that the new scheduler introduces noticeable benefits compared to the historical performance based approach. While a single 
+Figure \ref{img:hybrid_benchmark_results_network_aware} shows that the new scheduler introduces noticeable benefits compared to the historical performance based approach. While a single c4.8xlarge instance improves the system performance by 42\%, adding another one leads to a 83\% increase. Compared to 28\% and 55\% respectively for the performance based scheduler this depicts a significant improvement even though the new mechanism is very basic. When a third c4.8xlarge machine is introduced to the cluster no further speedup can be achieved for this workload.
+
