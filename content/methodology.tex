@@ -2,6 +2,7 @@
 \label{benchmarking_methodology}
 \section{Measurements}
 
+
 taken on bare metal machines
 no other users on the system
 make sure that unnecessary processes are killed
@@ -35,7 +36,7 @@ Throughout the research various benchmarks are presented to highlight caveats an
 	\label{table:cluster_setup_1}
 \end{table}
 
-All of the machines belonging to the above classes are installed in the same local network and connected via the specified interconnects. In order to retrieve empirical facts about the performance depending on the network interconnection, the real network performance of the machines has to be measured. Therefore tests were undertaken from a machine within the same network using iperf3 and ping. Both utilities were executed subsequently over the duration of 60 seconds with a measurement taken each second. The results are displayed in table \ref{table:cluster_interconnect_benchmarks}.
+All of the machines belonging to the above classes are installed in the same local network and connected via the specified interconnects. In order to retrieve empirical facts about the performance depending on the network interconnection, the real network performance of the machines has to be measured. Therefore tests were undertaken from a machine within the same network using iperf3 and ping. Both utilities were executed subsequently over the duration of 60 seconds with a measurement taken each second. The results are displayed in table \ref{table:cluster_interconnect_benchmarks}. It can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies.
 
 \begin{table}[!htb]
 	\centering
@@ -52,9 +53,6 @@ All of the machines belonging to the above classes are installed in the same loc
 	\caption{Cluster Interconnect Benchmarks}
 	\label{table:cluster_interconnect_benchmarks}
 \end{table}
-
-[TODO: include TCP overhead]
-From the benchmarks it can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies.
 
 \section{Workloads}
 \label{workload_explanation}
@@ -99,5 +97,3 @@ K-means clustering is an iterative data mining algorithm used for assigning $n$ 
 With $n$ objects, $k$ clusters, $d$ dimensions and $i$ iterations the complexity of k-means clustering becomes $O(n*k*d*i)$. In order to simplify this, all variables but the number of objects will be fixed, thus leading to a complexity of $O(n)$.
 
 The computation can be parallelized per iteration where each split receives its partial set of objects as well as all cluster coordinates. Therefore the only duplicated data are the centroids of the clusters, which in practice are of significantly smaller number than objects.
-
-[TODO: maybe explain that after each iteration the cluster coordinates are calculated in host code]
