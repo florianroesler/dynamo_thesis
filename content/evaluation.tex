@@ -2,43 +2,23 @@
 
 In section \ref{distribution} and \ref{abstraction} it was shown that dOpenCL and Aparapi deliver satisfying performance when used on their own. Combining both libraries within Dynamic OpenCL creates the question whether the overall solution can still bring noticeable benefits to cluster computations.
 
-For a meaningful evaluation local clusters as well as hybrid clusters will be utilized to compute diverse tasks. The employed local machine types and workloads are defined in chapter \ref{benchmarking_methodology}. In the case of cloud resources the individual capabilities will be explained in place.
+For a meaningful evaluation different cluster setups based on specific scenarios are employed. Those include local clusters, hybrid clusters as well as pure cloud clusters. The employed local machine types and workloads are defined in chapter \ref{benchmarking_methodology}. In the case of cloud resources the individual capabilities will be explained in place.
 
-\section{Local Distribution}
-\label{local_distribution}
+\section{Benchmark Specification}
+
+In order to gather insights on the performance of distributing various workloads within differently typed networks several benchmarks are defined. On the one hand side single jobs are run to identify the general scaling capabilities of Dynamic OpenCL. On the other hand side multiple jobs are executed in parallel on a cluster to observe the scheduling behavior. The following subsections will explain the test setups in detail.
+
 \subsection{Single Job Performance}
-\label{single_job_performance}
-In the first evaluation step a local cluster will be used to test various single workloads on one or two identical machines. Thus the combination of dOpenCL with Aparapi can be measured for speedups and potential overhead penalties of Dynamic OpenCL may be identified.
 
-In the benchmarking setup machines of Class B are accessed from a machine of Class A through a 1 Gbit/s connection. The first test group will only contain a single machine in the cluster while for the second group two machines will be employed. At first several matrix multiplications of varying sizes are executed. The number of splits is kept equal to the number of machines. For each problem size 5 runs are taken to calculate the arithmetic mean.
+For a diverse view on the performance of Dynamic OpenCL two very different workloads are chosen based on the amount of data that is required to execute them. Representing data intense jobs a matrix multiplication is determined that is executed for varying problem sizes. At first sight it may seem beneficial to divide the matrix multiplication into many subtasks for a granular parallelization. Actually this might lead to severe performance penalties due to the increased network overhead described in section \ref{matrix_multiplication_workload}. Therefore the number of splits is kept relatively low at six. This allows clusters that comprise one to three machines to distribute the tasks evenly.
 
-\begin{figure}[H]
-	
-	\includegraphics[width=1.0\textwidth]{images/sharded_matrix_multi.pdf}
-	\centering
-	\caption{Parallel Matrix Multiplication}
-	\label{img:parallel_matrix}
-\end{figure}
+While the matrix multiplication will put heavy load on the network another workload with low data transfer requirements has to be evaluated. For this the Mandelbrot set is chosen as it can lead to long execution times without requiring large data transfers. Again the set is executed for different problem sizes that scale up the data sizes even though the overall increase is much smaller than for the matrix multiplication. As Mandelbrot sets can be divided perfectly without overhead the split size is set to 20.
 
-Figure \ref{img:parallel_matrix} shows that using an additional machine can lead to substantial performance benefits. It is visible that for small problem sizes the speedup is only marginal between 10-30\%. This is due to the fact that for the smaller matrix sizes the computations are executed relatively fast but are neutralized by the network interconnect that has to serve both machines at the same time. For larger matrices the ratio of computation to transferred data becomes smaller thus diminishing the network congestion effect. This can be reasoned as with rising matrix sizes of $n^2$ the computational complexity increases by $n^3$. It also becomes apparent that with growing problem sizes the speedup gets greater with a decreasing slope, which indicates that it hits a barrier around 75\%. This barrier might be imposed due to overheads by Dynamic OpenCL, Aparapi and dOpenCL but may be mainly the result of network congestions.
-
-As matrix multiplications are computations that require noticeable amounts of data that influence the overall performance through network transfers, a second type of computation shall be evaluated that has very low data requirements. Such a workload is the Mandelbrot set, which does not need initial data but computes values according to positions in a two dimensional array. The Mandelbrot set was executed just as the previous matrix multiplication with 5 runs per problem size.
-
-\begin{figure}[H]
-	
-	\includegraphics[width=1.0\textwidth]{images/sharded_mandelbrot.pdf}
-	\centering
-	\caption{Parallel Mandelbrot}
-	\label{img:parallel_mandelbrot}
-\end{figure}
-
-Figure \ref{img:parallel_mandelbrot} reveals that its low data transfer requirements severely benefit the performance speedup. With speedups between 80\% and 88\% the maximum increase in performance is not only significantly higher than for the matrix multiplications but is also more stable in correlation to the problem sizes.
-
+For each problem size the computation is repeated five times and the reported results include the arithmetic mean as well as the standard deviation. 
 
 \subsection{Job Suite Performance}
-\label{job_suite_performance}
 
-Section \ref{single_job_performance} identified benefits when utilizing Dynamic OpenCL for a single job. In order to simulate a shared cluster environment it becomes necessary to evaluate its performance by executing variety of parallel jobs. For this reason a job suite was compiled that comprises six workloads of various complexity and type. Not only should the runtime differ per Kernel of each job but also their transferable data. The list of workloads is shown in table \ref{table:benchmark_job_setup} with the respective abbreviated identifiers that are used throughout the chapter.
+In order to simulate a shared cluster environment it becomes necessary to evaluate Dynamic OpenCL by executing a variety of jobs in parallel. For this reason a job suite was compiled that comprises six workloads of various complexity and type. Not only should the runtime differ per Kernel of each job but also their transferable data. The list of workloads is shown in table \ref{table:benchmark_job_setup} with the respective abbreviated identifiers that are used throughout the chapter.
 
 \begin{table}[!htb]
 	\centering
@@ -74,7 +54,53 @@ In order to prove the heterogeneity of the supplied workloads in terms of comput
 
 While it is visible that the computation times are very different, it can also be seen that the respective data transfers do not correlate to that attribute. For example, while MM2 and MB1 may require similar execution times, MM2 transfers 100x more data than MB1. The same is true for the iterative jobs KM and NB. It must be noted that MB1 and MB2 show a great standard deviation, which are not measurement errors but are a result of the nature of the algorithm. Mandelbrot calculations can not be split evenly in terms of computational effort and instead may run some Kernels for long times while having virtually no computations required by other Kernels.
 
-For the benchmark the performance indicator to measure is the total time to finish all tasks. As the selection of scheduling algorithms has a big impact on this value, it is necessary to define the utilized algorithms. For the job scheduling tier a round robin approach is used. On the device scheduling level a historic performance based algorithm is used that assigns a Kernel to the best performing device in case multiple are available. In order to allow for a fair comparison among multiple runs, all jobs are submitted before starting the execution engine.
+For the benchmark the performance indicator to measure is the total time to finish all tasks. As the selection of scheduling algorithms has a big impact on this value, it is necessary to define the utilized algorithms. For the job scheduling tier a round robin approach is used. On the device scheduling level a historic performance based algorithm is used that assigns a Kernel to the best performing device in case multiple devices are available. In order to allow for a fair comparison among multiple runs, all jobs are submitted before starting the execution engine.
+
+\section{Local Distribution}
+\label{local_distribution}
+
+\subsection{Fully Assisted Computation}
+A possible use case of Dynamic OpenCL is the outsourcing of entire computations to remote machines without allowing participation of the host machine itself. This could be due to severe differences in performance between the host and the remote machines. For example when a low powered ARM machine offloads tasks to a high performance server, it is likely to be beneficial to not include the ARM machine in the computation as it may slow down the overall process.
+
+Therefore in this scenario a single machine acts as the management node that receives the given tasks. In the first round it is connected to a single machine of Class B, which acts as the execution node. The measured times of the benchmarks for the single execution node act as the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same class one by one. It must be noted that the central management node is of Class A and therefore only provides 1 Gbit/s Ethernet.
+
+\subsubsection*{Single Job Performance}
+
+\subsubsection*{Job Suite Performance}
+
+\subsection{Partly Assisted Computation}
+
+Another likely use case of Dynamic OpenCL in a local cluster is the computational support of a host machine that needs to finish a task faster than it can achieve on its own. This is especially useful when certain deadlines have to be met but a single machine can not match the performance requirements.
+
+In order to simulate this use case the initial cluster setup is comprised of a single machine of Class B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then at first another machine of Class B is added to aid the initial machine with its computation through a 10 Gbit/s connection. In the last benchmark iteration a powerful machine of Class A is added utilizing 1 Gbit/s Ethernet.
+
+\subsubsection*{Single Job Performance}
+\label{single_job_performance}
+
+\begin{figure}[H]
+	
+	\includegraphics[width=1.0\textwidth]{images/sharded_matrix_multi.pdf}
+	\centering
+	\caption{Parallel Matrix Multiplication}
+	\label{img:parallel_matrix}
+\end{figure}
+
+Figure \ref{img:parallel_matrix} shows the results for the matrix multiplication. It identifies that using an additional machine can lead to substantial performance benefits. One can observe that for small problem sizes the speedup is only marginal between 10-30\%. This is due to the fact that for the smaller matrix sizes the computations are executed relatively fast but are neutralized by the network interconnect that has to serve both machines at the same time. For larger matrices the ratio of computation to transferred data becomes smaller thus diminishing the network congestion effect. This can be reasoned as with rising matrix sizes of $n^2$ the computational complexity increases by $n^3$. It also becomes apparent that with growing problem sizes the speedup gets greater with a decreasing slope, which indicates that it hits a barrier around 75\%. This barrier might be imposed due to overheads by Dynamic OpenCL, Aparapi and dOpenCL but may be mainly the result of network congestions.
+
+
+\begin{figure}[H]
+	
+	\includegraphics[width=1.0\textwidth]{images/sharded_mandelbrot.pdf}
+	\centering
+	\caption{Parallel Mandelbrot}
+	\label{img:parallel_mandelbrot}
+\end{figure}
+
+Figure \ref{img:parallel_mandelbrot} reveals that in the case of the Mandelbrot set its low data transfer requirements severely benefit the performance speedup. With speedups between 80\% and 88\% the maximum increase in performance is not only significantly higher than for the matrix multiplications but is also more stable in correlation to the problem sizes.
+
+
+\subsubsection*{Job Suite Performance}
+\label{job_suite_performance}
 
 The suite is executed five times on three different cluster setups. At first it is executed on a single machine of class B. In this setup no network transfer is needed as the management node also executed the Kernels. For the second cluster a machine of class B is added, which is connected by a 10 Gbit/s interconnect. Therefore, some Kernels may have to be sent over the network while others will be executed directly on the management node. In the final run another machine of class A is added, which is only connected with 1 Gbit/s but has a very high computational capability. The results of the benchmark are visible in the following figure:
 
@@ -90,11 +116,9 @@ The results indicate that employing a second machine that is connected through a
 
 \section{Hybrid Distribution}
 
-After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. For this, the benchmarks used in \ref{local_distribution} are applied to a cluster that holds local machines as well as resources that are booked on the Amazon EC2 cloud. In the setup only a single local machine of class B is employed. It serves as a management node as well as an execution node. 
+After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case could be that the local machines can not provide sufficient performance to match the current requirements. Then employing remote cloud resources can be a meaningful option to gain additional performance for short periods of time. For this, the cluster initially holds a single local machines of Class B. It serves as a management node as well as an execution node. Its performance is used as the baseline for comparisons. Then additional cloud resources are booked from the EC2 and added to the cluster. For the cloud resources a high performance computation instance type is chosen: the c4.8xlarge instance type provides 36 Intel Xeon E5-2666 v3 cores at 2.9 GHz as well as 60 GB of RAM. Amazon also promises to connect these instances through 10 Gbit/s interconnects.
 
-For the cloud resources a high performance computation instance type is chosen: the c4.8xlarge instances provide 36 Intel Xeon E5-2666 v3 cores at 2.9 GHz as well as 60 GB of RAM. Amazon also promises to connect these instances through 10 Gbit/s interconnects.
-
-While 10 Gbit/s interconnects proved to be a very potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster is set in Potsdam and should therefore be connected to the geographically closest region that is available on the EC2 cloud, which is in Frankfurt. As a first measure the interconnection speed between the two locations is measured by using iperf and ping from the local machine to a cloud machine over a minute. Then the same is done from a another c4.8xlarge machine within the EC2. The following table shows the network performance results:
+While 10 Gbit/s interconnects proved to be a very potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster is set in Potsdam and should therefore be connected to the geographically closest region that is available on the EC2 cloud, which is in Frankfurt. As an indicator the interconnection speed between the two locations is measured by using iperf and ping from the local machine to a cloud machine over a minute. Then the same is done from a another c4.8xlarge machine within the EC2. The following table shows the network performance results:
 
 \begin{table}[!htb]
 	\centering
@@ -112,7 +136,7 @@ While 10 Gbit/s interconnects proved to be a very potent solution when distribut
 	\label{table:local_vs_remote_ec2}
 \end{table}
 
-While machines within EC2 may profit from fast network connections, accessing the same machines remotely from a local cluster offers significantly higher latencies and lower bandwidths. A reason for the low remote performance numbers could be bottlenecks within the local network that reduce the bandwidth significantly. In order to investigate this theory three machines of type c4.8xlarge. Then a single local machine launches iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in the following figure:
+While machines within EC2 may profit from fast network connections, accessing the same machines remotely from a local cluster offers significantly higher latencies and lower bandwidths. A reason for the low remote performance numbers could be bottlenecks within the local network that reduce the bandwidth significantly. In order to investigate this theory three machines of type c4.8xlarge are started. Then a single local machine launches iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in the following figure:
 
 \begin{figure}[H]
 	\includegraphics[width=0.5\textwidth]{images/ec2_stacked_network_performance.pdf}
@@ -123,9 +147,7 @@ While machines within EC2 may profit from fast network connections, accessing th
 
 It is visible that the total network performance reaches 480 MBit/s in total for some data points, which disproves that the bottleneck lies within the local network. Instead it appears as if the EC2 only provides limited network capabilities per instance when accessed from outside of their cluster.
 
-\subsection{Single Job Performance}
-
-Similar to the benchmarks conducted in \ref{single_job_performance}, matrix multiplication and Mandelbrot sets of differing sizes are computed first on a single local machine and then on an additional c4.8xlarge instance.
+\subsection*{Single Job Performance}
 
 \begin{figure}[H]
 	\includegraphics[width=1.0\textwidth]{images/hybrid_matrix_multiplication.pdf}
@@ -134,7 +156,7 @@ Similar to the benchmarks conducted in \ref{single_job_performance}, matrix mult
 	\label{img:hybrid_matrix_multiplication}
 \end{figure}
 
-Figure \ref{img:hybrid_matrix_multiplication} displays the results for the matrix multiplications. It is visible that adding a cloud computation device for this workload adds only marginal performance improvements or even slows down the process in the case of smaller problem sizes. With increasing sizes the performance benefits become significant, peaking at around 50\% for the largest measured size. Even the 50\% increase in performance is not very promising as the c4.8xlarge instance brings in 36 additional cores and should therefore add much more computational capabilities to the already employed 8 cores of the local class B machine. As the connection between both networks is much slower than the typical bus speeds of the c4.8xlarge, it mainly remains underutilized due to the increased transfer times.
+Figure \ref{img:hybrid_matrix_multiplication} displays the results for the matrix multiplications. It is visible that in the case of smaller problem sizes adding a cloud computation device for this workload adds only marginal performance improvements or even slows down the process. With increasing sizes the performance benefits become significant, peaking at around 50\% for the largest measured size. Even the 50\% increase in performance is not very promising as the c4.8xlarge instance brings in 36 additional cores and should therefore add much more computational capabilities to the already employed 8 cores of the local class B machine. As the connection between both networks is much slower than the typical bus speeds of the c4.8xlarge, it mainly remains underutilized due to the increased transfer times.
 
 
 \begin{figure}[H]	
@@ -147,7 +169,7 @@ Figure \ref{img:hybrid_matrix_multiplication} displays the results for the matri
 
 For the second benchmark the Mandelbrot set is used again, which promises better performance than matrix multiplications on a hybrid setup due to its lower data requirements. The results of the measurements are shown in figure \ref{img:hybrid_mandelbrot}. In fact the c4.x8large can greatly improve the overall system performance through its 36 cores. Even for small problem sizes it already provides significant benefits but especially for the larger sizes it can speed up the execution by around x2.5. Thus it is concluded that the data requirements of a workload have an even greater impact on performance for hybrid setups than on an entirely local setup.
 
-\subsection{Job Suite Performance}
+\subsection*{Job Suite Performance}
 
 In order to simulate a shared hybrid cluster environment the same tests as in section \ref{job_suite_performance} are conducted. That means that the equal selection of jobs is submitted to the cluster, which consists of a single local machine of class B. This machine serves for management and execution in parallel. The cloud resources are comprised of a variable number of c4.8xlarge instances provided by Amazon. Again, for scheduling a Round Robin approach paired with the historical performance based device scheduler is utilized.
 
@@ -171,3 +193,16 @@ In order to optimize the assignment of data intense jobs to the appropriate devi
 
 Figure \ref{img:hybrid_benchmark_results_network_aware} shows that the new scheduler introduces noticeable benefits compared to the historical performance based approach. While a single c4.8xlarge instance improves the system performance by 42\%, adding another one leads to a 83\% increase. Compared to 28\% and 55\% respectively for the performance based scheduler this depicts a significant improvement even though the new mechanism is very basic. When a third c4.8xlarge machine is introduced to the cluster no further speedup can be achieved for this workload.
 
+\section{Cloud Distribution}
+
+In this scenario all utilized resources are located at a cloud service like Amazon's EC2. One central management node is run that does not execute any computations but distributes the tasks instead. The instance type for the management node is chosen based on the availability of a 10 Gbit/s interconnect. For the actual computations two different cluster sets are used. First all benchmarks are run on a CPU cluster that is comprised of multiple c4.8xlarge instances. Then all tests are run again on g2.2xlarge instances, which provide a NVIDIA GRID K520 GPU.
+
+\subsection{CPU Cluster}
+\subsubsection*{Single Job Performance}
+
+\subsubsection*{Job Suite Performance}
+
+\subsection{GPU Cluster}
+\subsubsection*{Single Job Performance}
+
+\subsubsection*{Job Suite Performance}
