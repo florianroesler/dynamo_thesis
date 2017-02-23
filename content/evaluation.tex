@@ -214,7 +214,7 @@ Figure \ref{img:hybrid_low_data_benchmark_results_network_aware} shows that the 
 
 \section{Cloud Distribution}
 
-In this scenario all utilized resources are located at a cloud service like Amazon's EC2. One central management node is run that does not execute any computations but distributes the tasks instead. The instance type for the management node is chosen based on the availability of a 10 Gbit/s interconnect. For the actual computations two different cluster sets are used. First all benchmarks are run on a CPU cluster that is comprised of multiple c4.8xlarge instances. Then all tests are run again on g2.2xlarge instances, which provide a NVIDIA GRID K520 GPU. This instance type is marked by Amazon as having 'high' network capabilities. In tests conducted with iperf3 the bandwidth was determined to vary within an interval between 986 Mbit/s and 998 Mbit/s.
+In this scenario all utilized resources are located at a cloud service like Amazon's EC2. One central management node is run that does not execute any computations but distributes the tasks instead. The instance type for the management node is chosen based on the availability of a 10 Gbit/s interconnect. For the actual computations two different cluster sets are used. First all benchmarks are run on a CPU cluster that is comprised of of a varying number of c4.8xlarge instances. Then all tests are run again on g2.2xlarge instances, which provide a NVIDIA GRID K520 GPU. This instance type is marked by Amazon as having 'high' network capabilities. In tests conducted with iperf3 the bandwidth was determined to vary within an interval between 986 Mbit/s and 998 Mbit/s. Although the g2.2xlarge instances include an Intel Xeon CPU, which is also available through OpenCL, they are deactivated to form a pure GPU cluster.
 
 \subsection{CPU Cluster}
 \subsubsection*{Single Job Performance}
@@ -225,20 +225,28 @@ In this scenario all utilized resources are located at a cloud service like Amaz
 	\label{img:ec2_cpu_matrix_multiplication}
 \end{figure}
 
+Figure \ref{img:ec2_cpu_matrix_multiplication} shows the performance of the CPU cluster for the matrix multiplications. As soon as a second instance is added to the cluster it is visible that the performance increases significantly but imperfectly as the instances now have to share the network. Therefore perfect scaling is impossible but nevertheless the second instance can provide a maximum speedup of around x1.9 for the largest problem size. The third instance once again reduces the overall computation time, peaking at around x2.8.
+
+It must be noted that the problem sizes 7800 and 9000 seem to produce an anomaly for this instance as the larger size actually yields a lower computation time. This seems to be a particularity of the c4.8xlarge instances as it could not be observed with any other tested hardware and remains stable across the various number of instances.
+
 \begin{figure}[H]	
 	\includegraphics[width=1.0\textwidth]{images/ec2_cpu_mandelbrot.pdf}
 	\centering
 	\caption{EC2 Pure Cloud Mandelbrot Set on CPUs}
 	\label{img:ec2_cpu_mandelbrot}
 \end{figure}
+
+In figure \ref{img:ec2_cpu_mandelbrot} the performance of the cluster for the Mandelbrot set is displayed. Unlike the matrix multiplications the performance improvements are very high for all problem sizes and peak at x1.96 for two instances and x2.97 for three instances. Once again the benefits of a 10 Gbit/s interconnection can be proven even though it is shared among the three participating machines. 
 \subsubsection*{Job Suite Performance}
 
 \begin{figure}[H]	
 	\includegraphics[width=1.0\textwidth]{images/ec2_cpu_full_benchmark.pdf}
 	\centering
-	\caption{EC2 Pure Cloud Job Suite on CPUs}
+	\caption{EC2 Pure Cloud Job Suite Benchmark on CPUs}
 	\label{img:ec2_cpu_full_benchmark}
 \end{figure}
+
+Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the hybrid cluster for the job suite benchmark. It can be inferred that the performance gains of a second instance are substantial at a x1.8 speedup even though the benchmark contains several data heavy Kernels. Indeed employing three instances yield another boost in computational power, providing a x2.3 speedup. Still it is visible that the gains of the third instance do not match those of the second as now more machines have to compete for network resources.
 
 \subsection{GPU Cluster}
 \subsubsection*{Single Job Performance}
@@ -262,6 +270,6 @@ In this scenario all utilized resources are located at a cloud service like Amaz
 \begin{figure}[H]	
 	\includegraphics[width=1.0\textwidth]{images/ec2_gpu_full_benchmark.pdf}
 	\centering
-	\caption{EC2 Pure Cloud Job Suite on GPUs}
+	\caption{EC2 Pure Cloud Job Suite Benchmark on GPUs}
 	\label{img:ec2_gpu_full_benchmark}
 \end{figure}
