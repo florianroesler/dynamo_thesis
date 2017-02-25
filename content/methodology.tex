@@ -2,11 +2,14 @@
 \label{benchmarking_methodology}
 \section{Measurements}
 
+The metric that is taken for all performance measurements is the wall clock time provided by the respective utilized programming language. For measurements of OpenCL code the builtin OpenCL profiler by calling \textit{clGetEventProfilingInfo} is used, which provides nano-second granularity. Timings that are taken in C++ are determined by the \textit{high\_resolution\_clock}. In the case of runtime measurements in Java, the command \textit{System.currentTimeMillis()} is used, which has a resolution depending on the underlying OS but is usually around tens of milliseconds. As the benchmarkes workloads are chosen to run at least multiple seconds and in many cases will take minutes to complete, the given precisions of the timings are deemed to be sufficient.
+
 
 taken on bare metal machines
 no other users on the system
 make sure that unnecessary processes are killed
 for network based tests measure real network speed beforehand
+network speed can not be measured while task is running
 talk about JVM specifics
 always report the arithmetic mean and standard deviation
 in case of short running measurements >30 runs
