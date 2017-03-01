@@ -2,18 +2,20 @@
 \label{benchmarking_methodology}
 \section{Measurements}
 
-The metric that is taken for all performance measurements is the wall clock time provided by the respective utilized programming language. For measurements of OpenCL code the builtin OpenCL profiler by calling \textit{clGetEventProfilingInfo} is used, which provides nano-second granularity. Timings that are taken in C++ are determined by the \textit{high\_resolution\_clock}. In the case of runtime measurements in Java, the command \textit{System.currentTimeMillis()} is used, which has a resolution depending on the underlying OS but is usually around tens of milliseconds. As the benchmarkes workloads are chosen to run at least multiple seconds and in many cases will take minutes to complete, the given precisions of the timings are deemed to be sufficient.
+The metric that is taken for all performance measurements is the wall clock time provided by the respective utilized programming language. For measurements of OpenCL code the builtin OpenCL profiler by calling \textit{clGetEventProfilingInfo} is used, which provides nano-second granularity. Timings that are taken in C++ are determined by the \textit{high\_resolution\_clock}. In the case of runtime measurements in Java, the command \textit{System.currentTimeMillis()} is used, which has a resolution depending on the underlying OS. On Ubuntu 16.04.1, which is employed in all benchmarks, the function displays millisecond precision. As the tested workloads are chosen to run at least multiple seconds and in many cases will take minutes to complete, the given precisions of the timings are deemed to be sufficient.
+
+In order to reduce any possible measurement errors, local systems run their OS directly on bare metal hardware. In the case of cloud resources this is not possible because of the necessary virtualization infrastructure to support multi tenancy. 
+
+For all systems it is ensured that there are no other users using it. Additionally, the number of background processes that could significantly utilize computational power are shutdown before testing.
+
+In most test cases the available network speed plays a crucial role to performance. Therefore the networking capabilities between two interacting systems are measured before testing to identify possible shortcomings. The recorded metrics that are deemed relevant are bandwidth and latency, which are supplied by the command line tools iperf3 and ping. Both tools are run sequentially for at least a minute with a sample taken each second.
+
+Dynamic OpenCL is written in Java, which means that most benchmarks will employ the JVM for parts of the application. Measuring performance for algorithms that run in the JVM usually requires extended control over some non-deterministic features, namely just-in-time compilation and garbage collection. For Dynamic OpenCL the JVM is only used for management code while the actual computations are executed in OpenCL. Therefore these non-deterministic effects are neglected as the Java code only takes up small fractions of the computational capabilities of a machine.
+
+For all recorded benchmarks multiple samples are taken. As most workloads are tested in various problem sizes, at least five measurements are taken per size. For short running single test cases at least 30 samples are taken. All results are provided including the arithmetic mean with corresponding standard deviation.
 
 
-taken on bare metal machines
-no other users on the system
-make sure that unnecessary processes are killed
-for network based tests measure real network speed beforehand
-network speed can not be measured while task is running
-talk about JVM specifics
-always report the arithmetic mean and standard deviation
-in case of short running measurements >30 runs
-in case of long running measurements with different problem sizes >5 runs per size but with >30 runs across all problem sizes
+explain warmup run
 
 \section{Cluster Composition}
 \label{cluster_composition}
@@ -21,7 +23,7 @@ Throughout the research various benchmarks are presented to highlight caveats an
 
 \begin{table}[htb]
 	\centering
-	\begin{adjustbox}{width=1\textwidth}
+	\begin{adjustbox}{width=0.7\textwidth}
 		\small
 		\begin{tabular}{l | l | l | l}
 			~                     & Class A                  	& Class B                  \\
@@ -46,7 +48,7 @@ All of the machines belonging to the above classes are installed in the same loc
 	\begin{adjustbox}{width=0.5\textwidth}
 		\small
 		\begin{tabular}{l | l | l}
-			~                     & Machine A                 			& Machine B                  \\
+			~                     & Class A                 			& Class B                  \\
 			\hline
 			iperf3                & 941.31 Mbit/s ($\sigma = 0.95$) 	& 9.409 Gbit/s ($\sigma = 0.051$) \\
 			ping                  & 0.186 ms ($\sigma = 0.022$)  		& 0.14 ms ($\sigma = 0.012$)  \\
@@ -56,6 +58,48 @@ All of the machines belonging to the above classes are installed in the same loc
 	\caption{Cluster Interconnect Benchmarks}
 	\label{table:cluster_interconnect_benchmarks}
 \end{table}
+
+Some of the benchmarks employ cloud instances provided by Amazon's EC2. Customers may choose machines from a range of instance types to fit their specific needs. For the test cases in this research two computational high performance types were chosen, one CPU type and one GPU type. The following table shows the details for the respective instance types:
+
+\begin{table}[!htb]
+	\centering
+	\begin{adjustbox}{width=0.65\textwidth}
+		\small
+		\begin{tabular}{l | l | l | l}
+			~                     & c4.8xlarge                	& g2.2xlarge                 \\
+			\hline
+			CPU                   &  Intel Xeon E5-2666 v3 	& Intel Xeon E5-2670 \\
+			Logical Cores         &  36 	& 8 \\
+			GPU                   &  -						& GRID K520 \\
+			RAM                   &  60GB                       	& 15GB                       \\
+			Interconnect          &  10 GBit/s                  	& 1 GBit/s                  \\
+			OS                    &  Ubuntu 14.04.4 64 Bit      	& Ubuntu 14.04.4 64 Bit      \\
+			OpenCL Driver Version &  1.2.0.25                   & 1.2 CUDA 367.57        \\
+		\end{tabular}
+	\end{adjustbox}
+	
+	\caption{EC2 Cluster Composition}
+	\label{table:cluster_setup_ec2}
+\end{table}
+
+For both instance types the network speeds are measured by launching the iperf3 and ping from within the EC2 on a c4.8xlarge instance.
+
+\begin{table}[!htb]
+	\centering
+	\begin{adjustbox}{width=0.5\textwidth}
+		\small
+		\begin{tabular}{l | l | l}
+			~                     & c4.8xlarge               			& g2.2xlarge                \\
+			\hline
+			iperf3                & 9.25 Gbit/s ($\sigma = 0.026$) 	& 992.6 MBit/s ($\sigma = 4.8$) \\
+			ping                  & 0.129 ms ($\sigma = 0.023$)  		& 1.29 ms ($\sigma = 0.047$)  \\
+		\end{tabular}
+	\end{adjustbox}
+	
+	\caption{Cluster Interconnect Benchmarks}
+	\label{table:cluster_interconnect_benchmarks}
+\end{table}
+
 
 \section{Workloads}
 \label{workload_explanation}

@@ -66,53 +66,75 @@ Therefore in this scenario a single machine acts as the management node that rec
 
 \subsubsection*{Single Job Performance}
 
+\begin{figure}[H]
+	
+	\includegraphics[width=1.0\textwidth]{images/local_fully_assisted_matrix.pdf}
+	\centering
+	\caption{Local Fully Assisted Parallel Matrix Multiplication}
+	\label{img:fully_assisted_parallel_matrix}
+\end{figure}
+
+
+\begin{figure}[H]
+	
+	\includegraphics[width=1.0\textwidth]{images/local_fully_assisted_mandelbrot.pdf}
+	\centering
+	\caption{Local Fully Assisted Parallel Mandelbrot}
+	\label{img:fully_assisted_parallel_mandelbrot}
+\end{figure}
 \subsubsection*{Job Suite Performance}
+
+\begin{figure}[H]
+	
+	\includegraphics[width=1.0\textwidth]{images/local_fully_assisted_full_benchmark.pdf}
+	\centering
+	\caption{Local Fully Assisted Job Suite Benchmark Results}
+	\label{img:local_fully_assisted_benchmark_results}
+\end{figure}
 
 \subsection{Partly Assisted Computation}
 
 Another likely use case of Dynamic OpenCL in a local cluster is the computational support of a host machine that needs to finish a task faster than it can achieve on its own. This is especially useful when certain deadlines have to be met but a single machine can not match the performance requirements.
 
-In order to simulate this use case the initial cluster setup is comprised of a single machine of Class B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then at first another machine of Class B is added to aid the initial machine with its computation through a 10 Gbit/s connection. In the last benchmark iteration a powerful machine of Class A is added utilizing 1 Gbit/s Ethernet.
+In order to simulate this use case the initial cluster setup is comprised of a single machine of Class B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then in each benchmark iteration a remote node of Class B is added. Therefore all participating machines employ 10 Gbit/s interconnects with the central node having the potential bottleneck as it has to serve multiple equal connections. The setup also concludes that not all Kernels have to take equal within the network as some might be computed directly on the central node.
 
 \subsubsection*{Single Job Performance}
 \label{single_job_performance}
 
 \begin{figure}[H]
 	
-	\includegraphics[width=1.0\textwidth]{images/sharded_matrix_multi.pdf}
+	\includegraphics[width=1.0\textwidth]{images/local_partially_assisted_matrix.pdf}
 	\centering
-	\caption{Parallel Matrix Multiplication}
+	\caption{Local Partially Assisted Parallel Matrix Multiplication}
 	\label{img:parallel_matrix}
 \end{figure}
 
-Figure \ref{img:parallel_matrix} shows the results for the matrix multiplication. It identifies that using an additional machine can lead to substantial performance benefits. One can observe that for small problem sizes the speedup is only marginal between 10-30\%. This is due to the fact that for the smaller matrix sizes the computations are executed relatively fast but are neutralized by the network interconnect that has to serve both machines at the same time. For larger matrices the ratio of computation to transferred data becomes smaller thus diminishing the network congestion effect. This can be reasoned as with rising matrix sizes of $n^2$ the computational complexity increases by $n^3$. It also becomes apparent that with growing problem sizes the speedup gets greater with a decreasing slope, which indicates that it hits a barrier around 75\%. This barrier might be imposed due to overheads by Dynamic OpenCL, Aparapi and dOpenCL but may be mainly the result of network congestions.
-
+Figure \ref{img:parallel_matrix} shows the results for the matrix multiplication. It identifies that using an additional machine can lead to substantial performance benefits. One can observe that with a single additional remote machine for small problem sizes the speedup is already significant with at least x1.65 speedup and reaches value around x1.95 for bigger problem sizes. Adding a second remote machine benefits the cluster nearly as much as the first remote machine with speedups rising to around x2.8 for the biggest problem size. Introducing a third and fourth remote machine does not yield significant additional speedups as the number of splits is only six and therefore too low to effectively serve that many machines.
 
 \begin{figure}[H]
 	
-	\includegraphics[width=1.0\textwidth]{images/sharded_mandelbrot.pdf}
+	\includegraphics[width=1.0\textwidth]{images/local_partially_assisted_mandelbrot.pdf}
 	\centering
-	\caption{Parallel Mandelbrot}
+	\caption{Local Partially Assisted Parallel Mandelbrot}
 	\label{img:parallel_mandelbrot}
 \end{figure}
 
-Figure \ref{img:parallel_mandelbrot} reveals that in the case of the Mandelbrot set its low data transfer requirements severely benefit the performance speedup. With speedups between 80\% and 88\% the maximum increase in performance is not only significantly higher than for the matrix multiplications but is also more stable in correlation to the problem sizes.
+Figure \ref{img:parallel_mandelbrot} reveals that in the case of the Mandelbrot set its low data transfer requirements severely benefit the performance speedup. With every added remote machine the speedup increases close to perfection for all problem sizes until the fourth remote machine is introduced to the cluster. Then the benefits are only minuscule because there are not enough computationally intense splits available to saturate all participating machines efficiently. Thus the maximum speedup for 3 remote machines is x3.8 while for 4 remote machines it is only raised to x4.0.
 
 
 \subsubsection*{Job Suite Performance}
 \label{job_suite_performance}
 
-The suite is executed five times on three different cluster setups. At first it is executed on a single machine of class B. In this setup no network transfer is needed as the management node also executed the Kernels. For the second cluster a machine of class B is added, which is connected by a 10 Gbit/s interconnect. Therefore, some Kernels may have to be sent over the network while others will be executed directly on the management node. In the final run another machine of class A is added, which is only connected with 1 Gbit/s but has a very high computational capability. The results of the benchmark are visible in the following figure:
-
 \begin{figure}[H]
 	
-	\includegraphics[width=1.0\textwidth]{images/local_full_benchmark_results.pdf}
+	\includegraphics[width=1.0\textwidth]{images/local_partially_assisted_full_benchmark.pdf}
 	\centering
-	\caption{Local Job Suite Benchmark Results}
+	\caption{Local Partially Assisted Job Suite Benchmark Results}
 	\label{img:local_benchmark_results}
 \end{figure}
 
-The results indicate that employing a second machine that is connected through a fast Ethernet connection can produce significant performance benefits. Although Kernels have to be sent over the network to the second machine, it still yields an average speedup of x1.76. It also reveals that the scheduling works sufficiently even though it is based on naive algorithms. In the last cluster setup the high performance machine of class A is added, which is connected only by 1 Gbit/s. Even though the network slows down the execution times on this machine it can still double the performance of the cluster, leading to a speedup of x3.54. Thus it can be concluded that the parallelization by Dynamic OpenCL through remote machines is a viable option within a shared local cluster. It has to be noted though that high performance machines like machines of class A may be underutilized and slowed down by network transfers.
+The results in figure \ref{img:local_benchmark_results} indicate that employing additional remote machines for mixed workloads can produce significant performance benefits. Especially the first and second remote machine yield a respective x1.8 and x2.4 speedup. The third and fourth machine can only add smaller performance improvements to around x2.8 and x3.0 speedup. The reason for the decreasing slope in performance increase could be the presence of symmetric network connections. With a higher amount of participating remote machines the connection to the central node becomes more and more contested. Therefore every added node reduces the performance of the previously existing node in order to get its own share of bandwidth.
+
 
 \section{Hybrid Distribution}
 
@@ -214,7 +236,7 @@ Figure \ref{img:hybrid_low_data_benchmark_results_network_aware} shows that the 
 
 \section{Cloud Distribution}
 
-In this scenario all utilized resources are located at a cloud service like Amazon's EC2. One central management node is run that does not execute any computations but distributes the tasks instead. The instance type for the management node is chosen based on the availability of a 10 Gbit/s interconnect. For the actual computations two different cluster sets are used. First all benchmarks are run on a CPU cluster that is comprised of of a varying number of c4.8xlarge instances. Then all tests are run again on g2.2xlarge instances, which provide a NVIDIA GRID K520 GPU. This instance type is marked by Amazon as having 'high' network capabilities. In tests conducted with iperf3 the bandwidth was determined to vary within an interval between 986 Mbit/s and 998 Mbit/s. Although the g2.2xlarge instances include an Intel Xeon CPU, which is also available through OpenCL, they are deactivated to form a pure GPU cluster.
+In this scenario all utilized resources are located at a cloud service like Amazon's EC2. One central management node is run that does not execute any computations but distributes the tasks instead. The instance type for the management node is chosen based on the availability of a 10 Gbit/s interconnect, which is the c4.8xlarge type. For the actual computations two different cluster sets are used. First all benchmarks are run on a CPU cluster that is comprised of of a varying number of c4.8xlarge instances. Then all tests are run again on g2.2xlarge instances, which provide a NVIDIA GRID K520 GPU.
 
 \subsection{CPU Cluster}
 \subsubsection*{Single Job Performance}
@@ -246,7 +268,7 @@ In figure \ref{img:ec2_cpu_mandelbrot} the performance of the cluster for the Ma
 	\label{img:ec2_cpu_full_benchmark}
 \end{figure}
 
-Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the hybrid cluster for the job suite benchmark. It can be inferred that the performance gains of a second instance are substantial at a x1.8 speedup even though the benchmark contains several data heavy Kernels. Indeed employing three instances yield another boost in computational power, providing a x2.3 speedup. Still it is visible that the gains of the third instance do not match those of the second as now more machines have to compete for network resources.
+Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the CPU cluster for the job suite benchmark. It can be inferred that the performance gains of a second instance are substantial at a x1.8 speedup even though the benchmark contains several data heavy Kernels. Indeed employing three instances yield another boost in computational power, providing a x2.3 speedup. Still it is visible that the gains of the third instance do not match those of the second as more machines have to compete for network resources.
 
 \subsection{GPU Cluster}
 \subsubsection*{Single Job Performance}
@@ -258,12 +280,16 @@ Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the hybrid clus
 	\label{img:ec2_gpu_matrix_multiplication}
 \end{figure}
 
+In figure \ref{img:ec2_gpu_matrix_multiplication} the benchmark results for the matrix multiplication are displayed. It is visible that there is a clear difference towards the CPU results as the speedup is near perfect for all tested problem sizes. While this may surprise at first, the reason for this effect are the 1 GBit/s connections of the GPU nodes that can not bottleneck the 10 GBit/s connection of the management node. Therefore each additional node can introduce the same speedup until the connection of the management node is saturated, which in this case would probably happen after around 10 GPU instances.
+
 \begin{figure}[H]	
 	\includegraphics[width=1.0\textwidth]{images/ec2_gpu_mandelbrot.pdf}
 	\centering
 	\caption{EC2 Pure Cloud Mandelbrot Set on GPUs}
 	\label{img:ec2_gpu_mandelbrot}
 \end{figure}
+
+The Mandelbrot set benchmarks, which can be seen in figure \ref{img:ec2_gpu_mandelbrot}, paint a similar picture. Whether two or three instances are used does matter in terms of additional speedup. Both machines can introduce a near perfect performance benefits to the cluster as the data sizes are small and the 1 Gbit/s connections of all participating instances can be fully saturated.
 
 \subsubsection*{Job Suite Performance}
 
@@ -273,3 +299,5 @@ Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the hybrid clus
 	\caption{EC2 Pure Cloud Job Suite Benchmark on GPUs}
 	\label{img:ec2_gpu_full_benchmark}
 \end{figure}
+
+Figure \ref{img:ec2_gpu_full_benchmark} shows the performance of the GPU cluster for the mixed job suite benchmark. Both the second and third GPU instance introduce a substantial performance increase to the cluster, with a x1.8 speedup and x2.5 speedup respectively.
