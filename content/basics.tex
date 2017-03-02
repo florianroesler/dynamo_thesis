@@ -20,7 +20,7 @@ Due to its simple programming model, which mainly consists of a Map and a Reduce
 CUDA is an API released by NVIDIA, which enables NVIDIA GPUs to be used for general purpose computing. As modern GPUs are comprised of hundreds or even thousands of streaming processors, data parallel algorithms can make extensive use of the CUDA infrastructure.
 
 \section{OpenCL}
-
+\label{opencl}
 OpenCL is a framework that stands in direct competition with CUDA. It was initially proposed by Apple but is now maintained by the Khronos Group, which consists of a multitude of companies like AMD, Intel, NVIDIA and more. Unlike CUDA, OpenCL is not limited to NVIDIA GPUs but supports various device types and vendors. As such OpenCL programs may be executed on CPUs, GPUs, FPGAs and DSPs. Prerequisite for the execution of OpenCL code on a machine is the presence of the OpenCL ICD for a targeted device. Such ICDs must conform with the specifications released by the Khronos Group. As of today, many implementations of the specifications exist by many vendors like AMD, NVIDIA, Intel, Apple, ARM, Xilinx and others.
 
 One of the most important definitions within the OpenCL standard is the introduction of its programming model as well as the memory structure:

@@ -262,9 +262,8 @@ In order to offer algorithms on the second tier valuable data, several analytica
 
 Based on the implemented \textit{Performance Cache} the \textit{Performance Based Device Scheduler} is included in Dynamic OpenCL, which assigns the currently available device with the best historical performance to a task. With the available features concerning data transfer analysis more sophisticated and fine grained schedulers are possible to be implemented in the future. Additionally, system wide optimizations are feasible, which minimize the overall execution time of all submitted tasks. For instance, a Simplex algorithm based scheduler would take into account trade off scenarios where it is beneficial not to grant a task its best suited device but minimize the expected execution time among all scheduling decisions. 
 
-It must be noted that schedulers on this tier may rightfully ignore the order of tasks given by the first tier. For example the first tier might hand over a list of tasks in FIFO order. If this list is handled by a Simplex based scheduler on the second tier, the principle of FIFO may be violated in order to find the optimal distribution.
+It must be noted that schedulers on this tier may rightfully ignore the order of tasks given by the first tier. For example the first tier might hand over a list of tasks in FIFO order. If this list is handled by a Simplex based scheduler on the second tier, the principle of FIFO may be violated in favor of finding the optimal distribution.
 
-reason that the second tier may ignore the first one completely, also why fifo isnt necessarily fifo
 \section{Exemplary Use Cases}
 
 In the previous sections the main characteristics of Dynamic OpenCL were explained. The included features make it a viable option for a variety of use cases which will be introduced in the following.
@@ -294,13 +293,3 @@ In the previous sections the main characteristics of Dynamic OpenCL were explain
 	
 \end{description}
 
-
-\section{Limitations}
-
-problems with different feature sets
-
-show bottlenecks (memory of central machine and network in total)
-
-jobs that make sense
-
-job design limitations
