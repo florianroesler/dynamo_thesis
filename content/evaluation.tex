@@ -62,7 +62,7 @@ For the benchmark the performance indicator to measure is the total time to fini
 \subsection{Fully Assisted Computation}
 A possible use case of Dynamic OpenCL is the outsourcing of entire computations to remote machines without allowing participation of the host machine itself. This could be due to severe differences in hardware capabilities between the host and the remote machines. For example when a low powered ARM machine offloads tasks to a high performance server, it is likely to be beneficial to not include the ARM machine in the computation as it may slow down the overall process.
 
-Therefore in this scenario a single machine acts as the management node that receives the given tasks. In the first round it is connected to a single machine of Class B, which acts as the execution node. The measured times of the benchmarks for the single execution node act as the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same class one by one. It must be noted that the central management node is of Class A and therefore only provides 1 Gbit/s Ethernet.
+Therefore in this scenario a single machine acts as the management node that receives the given tasks. In the first round it is connected to a single machine of Class B, which acts as the execution node. The measured times of the benchmarks for the single execution node represents the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same class one by one. It must be noted that the central management node is of Class A and therefore only provides 1 Gbit/s Ethernet.
 
 \subsubsection*{Single Job Performance}
 
@@ -74,6 +74,7 @@ Therefore in this scenario a single machine acts as the management node that rec
 	\label{img:fully_assisted_parallel_matrix}
 \end{figure}
 
+The benchmark results for the matrix multiplication in figure \ref{img:fully_assisted_parallel_matrix} display that the performance gains for the given cluster configuration are not on par with the actual available performance. The second remote machine can still yield speedups to around x1.5 for bigger problem sizes while the second machine only raises that to around x1.7. From there on every further cluster expansion does only yield very minimal improvements to a maximum of x1.75 and in the case of the last machine even produces minor slowdowns. This behavior is the result of the 1 GBit/s connection being such a narrow bottleneck that can not serve the participating machines adequately and thus makes their the CPUs remain idle for longer timespans.  
 
 \begin{figure}[H]
 	
@@ -82,6 +83,9 @@ Therefore in this scenario a single machine acts as the management node that rec
 	\caption{Local Fully Assisted Parallel Mandelbrot}
 	\label{img:fully_assisted_parallel_mandelbrot}
 \end{figure}
+
+In the case of the Mandelbrot set the cluster performs much better as shown in figure \ref{img:fully_assisted_parallel_mandelbrot}. While the second machine can improve the performance by a near perfect speedup of around x1.9 even the third and fourth machine can reproduce this behavior with a speedup x2.85 and x3.7 respectively. From the results it can be inferred that the fifth machine saturates the performance for the given workload with a maximum speedup of x4.0. A probable explanation for this barrier is the inequality in required computations among splits. This causes additional machines to remain idle for the majority of the time as not enough splits with longer computations are available.
+
 \subsubsection*{Job Suite Performance}
 
 \begin{figure}[H]
@@ -91,6 +95,8 @@ Therefore in this scenario a single machine acts as the management node that rec
 	\caption{Local Fully Assisted Job Suite Benchmark Results}
 	\label{img:local_fully_assisted_benchmark_results}
 \end{figure}
+
+The job suite benchmark, which can be seen in figure \ref{img:local_fully_assisted_benchmark_results}, implicates that the data intense jobs in it dominate the results for this cluster as they are quite similar to those of the matrix multiplication. While the second and third machine can introduce a x1.7 and x2.2 speedup, every additional machine can only bring minuscule improvements. Once again more machines congest the network and thus heavily slow down others instead of increasing the computational performance.
 
 \subsection{Partly Assisted Computation}
 
@@ -138,27 +144,9 @@ The results in figure \ref{img:local_benchmark_results} indicate that employing 
 
 \section{Hybrid Distribution}
 
-After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case could be that the local machines can not provide sufficient performance to match the current requirements. Then employing remote cloud resources can be a meaningful option to gain additional performance for short periods of time. For this, the cluster initially holds a single local machines of Class B. It serves as a management node as well as an execution node. Its performance in the benchmarks is used as the baseline for comparisons. Then additional cloud resources are booked from the EC2 and added to the cluster. For the cloud resources a high performance computation instance type is chosen: the c4.8xlarge instance type provides 36 Intel Xeon E5-2666 v3 cores at 2.9 GHz as well as 60 GB of RAM. Amazon also promises to connect these instances through 10 Gbit/s interconnects.
+After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case could be that the local machines can not provide sufficient performance to match the current requirements. Then employing remote cloud resources can be a meaningful option to gain additional performance for short periods of time. For this, the cluster initially holds a single local machines of Class B. It serves as a management node as well as an execution node. Its performance in the benchmarks is used as the baseline for comparisons. Then additional cloud resources are booked from the EC2 and added to the cluster. For the cloud resources the high performance instance type c4.8xlarge is chosen, which is described in \ref{cluster_composition}.
 
-While 10 Gbit/s interconnects is proven to be a very potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster is set in Potsdam and should therefore be connected to the geographically closest region that is available on the EC2 cloud, which is in Frankfurt. As an indicator the interconnection speed between the two locations is measured by using iperf3 and ping from the local machine to a cloud machine over a minute. Then the same is done from a another c4.8xlarge machine within the EC2. The following table shows the network performance results:
-
-\begin{table}[!htb]
-	\centering
-	\begin{adjustbox}{width=0.5\textwidth}
-		\small
-		\begin{tabular}{l | l | l}
-			~                     & Local                 				& Remote                  \\
-			\hline
-			iperf3                & 2.69 Gbit/s ($\sigma = 0.05$) 		& 169.26 Mbit/s ($\sigma = 11.93$) \\
-			ping                  & 0.317 ms ($\sigma = 0.037$)  		& 18.9 ms ($\sigma = 0.17$)  \\
-		\end{tabular}
-	\end{adjustbox}
-	
-	\caption{Local vs. Remote interconnection EC2}
-	\label{table:local_vs_remote_ec2}
-\end{table}
-
-While machines within EC2 may profit from fast network connections, accessing the same machines remotely from a local cluster offers significantly higher latencies and lower bandwidths. A reason for the low remote performance numbers could be bottlenecks within the local network that reduce the bandwidth significantly. In order to investigate this theory three machines of type c4.8xlarge are started. Then a single local machine launches iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in the following figure:
+While 10 Gbit/s interconnects is proven to be a very potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster is set in Potsdam and should therefore be connected to the geographically closest region that is available on the EC2 cloud, which is in Frankfurt. As an indicator the interconnection speed between the two locations is measured by using iperf3 and ping from the local machine to a cloud machine over a minute. These results can then be compared to the measured metrics from within the EC2, which were presented in \ref{cluster_composition}. Although local EC2 bandwidths and latencies can reach very promising values of 9.44 Gbit/s and 0.158 ms, accessing the same instances from a network outside the cloud can only yield 169.26 Mbit/s ($\sigma = 11.93$) and 18.9 ms ($\sigma = 0.17$). A reason for the low remote performance numbers could be bottlenecks within the local network that reduce the bandwidth significantly. In order to investigate this theory three machines of type c4.8xlarge are started. Then a single local machine launches iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in the following figure:
 
 \begin{figure}[H]
 	\includegraphics[width=0.5\textwidth]{images/ec2_stacked_network_performance.pdf}
@@ -167,7 +155,7 @@ While machines within EC2 may profit from fast network connections, accessing th
 	\label{img:EC2 Parallel Network Performance}
 \end{figure}
 
-It is visible that the total network performance reaches 480 MBit/s in total for some data points, which disproves that the bottleneck lies within the local network. Instead it appears as if the EC2 only provides limited network capabilities per instance when accessed from outside of their local network.
+It is visible that the total network performance reaches 480 MBit/s in total for some data points, which disproves that the local network is bottlenecked to the bandwidths of a single instance. In order to identify the limiting factor, the bandwidth to the EC2 is again measured from a different network in Berlin. From there average bandwidths of 306 MBit/s can be achieved. This disproves that the EC2 itself limits the incoming connections. Still, from the machines within the Potsdam cluster downloading large files from other internet locations allows bandwidths up to 360 MBit/s. Therefore it is concluded that during the routing from Potsdam to the EC2 the bandwidths are limited, which is not enforced on other routes.
 
 \subsection*{Single Job Performance}
 
