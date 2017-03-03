@@ -1,19 +1,32 @@
 \chapter{Basics}
 
-\section{Cluster Distribution Methods}
+\section{Distribution Methods}
 \label{distribution_basics}
 
-\subsection{OpenMP}
-OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program.
+\subsection{OpenMP and OpenACC}
+OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program \cite{openmp_spec}. The resulting code can then be run in multiple threads that can be scheduled on many CPU cores in parallel.
 
-\subsection{OpenACC}
+\begin{lstlisting}[language=C]
+void example()
+{
+int i = 0;
+int n = 10;
+#pragma omp parallel for
+for (i=1; i<n; i++) /* i is private by default */
+b[i] = (a[i] + a[i-1]) / 2.0;
+}
+
+\end{lstlisting}
+
+
+OpenACC offers similar functionality as OpenMP but aims at offloading parallel computations to attached accelerators like GPUs \cite{openacc_spec}. 
 
 \subsection{MPI}
-Although OpenMP is a very powerful tool for parallelization on a single machine, in order to write larger scale software, communications across multiple machines are necessary. One standard tool to achieve this is MPI.
+Although OpenMP and OpenACC are powerful tools for parallelization on a single machine, in order to write large scale software, communications across multiple machines are necessary. One standard tool to achieve this is MPI.
 MPI offers bindings to many languages and extends such by functions to identify a process and send as well as receive messages.
 
 \subsection{MapReduce}
-Due to its simple programming model, which mainly consists of a Map and a Reduce phase (there are many other phases in its implementations) it's a favoured approach for large clusters. Its most prominent implementation is Hadoop MapReduce, which in combination with Hadoop Distributed File System, is especially applicable for data intense jobs like log analysis and more.
+Due to its simple programming model, which mainly consists of a \textit{Map} and a \textit{Reduce} phase it is a commonly used approach for large clusters. Its most prominent implementation is Hadoop MapReduce, which runs in combination with the Hadoop Distributed File System. It is therefore especially applicable for data intense jobs like log analysis.
 
 \section{CUDA}
 
@@ -21,13 +34,13 @@ CUDA is an API released by NVIDIA, which enables NVIDIA GPUs to be used for gene
 
 \section{OpenCL}
 \label{opencl}
-OpenCL is a framework that stands in direct competition with CUDA. It was initially proposed by Apple but is now maintained by the Khronos Group, which consists of a multitude of companies like AMD, Intel, NVIDIA and more. Unlike CUDA, OpenCL is not limited to NVIDIA GPUs but supports various device types and vendors. As such OpenCL programs may be executed on CPUs, GPUs, FPGAs and DSPs. Prerequisite for the execution of OpenCL code on a machine is the presence of the OpenCL ICD for a targeted device. Such ICDs must conform with the specifications released by the Khronos Group. As of today, many implementations of the specifications exist by many vendors like AMD, NVIDIA, Intel, Apple, ARM, Xilinx and others.
+OpenCL is a framework that represents a direct competitor to CUDA. It was initially proposed by Apple but is now currently by the Khronos Group, which consists of a multitude of companies like AMD, Intel, NVIDIA and others \cite{opencl_directors}. Unlike CUDA, OpenCL is not limited to NVIDIA GPUs but supports various device types and vendors. Instead OpenCL programs may be executed on CPUs, GPUs, FPGAs and digital signal processor (abbr. DSP). Prerequisite for the execution of OpenCL code on a machine is the presence of an OpenCL Installable Client Driver (abbr. ICD) for a targeted device. Such ICDs must conform with the specifications released by the Khronos Group. As of today, many implementations of the specifications exist by various vendors like AMD, NVIDIA, Intel, Apple, ARM, Xilinx and others \cite{opencl_conform}.
 
-One of the most important definitions within the OpenCL standard is the introduction of its programming model as well as the memory structure:
+The most important definitions within the OpenCL standard are the introduction of its programming model as well as the underlying memory model:
 
 \begin{description}[style=nextline]
     \item [Programming Model]
-    OpenCL programs, called Kernels are executed in parallel on devices, namely for each work-item, which is the smallest partial unit of a submitted task. For example a work-item could be an element of an array. Work-items are bundled in work-groups like smaller subdivisions of an array, which allow for synchronization within the group. As such all work-items within a work-group are handled by the same Compute Unit (abbrv. CU), which for instance could be a CPU core.
+    OpenCL programs, called Kernels are executed in parallel on devices, namely for each work-item, which is the smallest partial unit of a submitted task. For example a work-item could be an element of an array that is being processed. Work-items are bundled in work-groups like smaller subdivisions of an array, which allow for synchronization within the group. As such all work-items within a work-group are handled by the same Compute Unit (abbrv. CU), which for instance could be a CPU core.
 
     During execution multiple work-items are processed in parallel in so called wavefronts (AMD terminology) or warps (NVIDIA terminology). From here on the term wavefront will be utilized. Work-items within a wavefront are executed in lockstep, which means that all branches like both paths of if-conditions are run for very item, even when only a single work-item diverges. Therefore conditional constructs may lead to significant performance penalties.
 
