@@ -1,106 +1,95 @@
 \chapter{Related Work}
 \label{related}
 
-There exist many research papers that cover partial problems of the goals that the planned framework aims to solve. Thus it is mandatory to showcase the particular specialties of these contributions and explain their general methodology in this chapter.
-
 \section{OpenCL Single Machine Distribution}
 
-\subsection*{Achieving a Single Compute Device Image in OpenCL for Multiple GPUs}
-\citeauthor{Kim_2011} propose a framework that distributes workloads across multiple GPUs on a single machine\cite{Kim_2011}. The memory of all included GPUs is consolidated in a single virtual memory space.
-Instead of launching the original OpenCL kernels, the kernels are translated to CUDA and launched from the CUDA platform. In order to achieve an improved distribution, the OpenCL code is first translated to C to sample the memory access patterns.
-
-In order to reduce data transfers, not all data is transferred to every device but only the minimal necessary data for correct execution of every distributed work group. This is achieved by analyzing the sampled memory accesses and thus receiving a lower and upper memory bound of used memory addresses.
-
-Its distribution method is based on the memory consistency model of OpenCL, which states that "an update to a global memory location by a work-group does not need to be visible to other work-groups in the same kernel index space during the kernel execution" and a general execution independence of work groups with the exception of memory barriers.
-
-\subsection*{SOCL\cite{socl}}
-SOCL is a framework offering the following key points:
+\subsection*{SOCL}
+SOCL is a framework by \citeauthor{socl} that offers the following key features\cite{socl}:
 \begin{itemize}
     \item Schedule and load balance kernels across multiple devices
     \item Manage memory transfers and coherency
     \item Dynamically adapt granularity of kernels
 \end{itemize}
 
-SOCL acts as a middleware with its own OpenCL ICD utilizing other installed ICDs on a machine. Thus, it is able to implement functionalities such as shared command queues for multiple devices by hiding the still remaining split command queues for each device. Through this method, load balancing techniques can also be applied.
+SOCL acts as a middleware with its own OpenCL ICD utilizing other installed ICDs on a machine. Thus, it is able to implement functionalities such as shared command queues for multiple devices by hiding the divided command queues for each device. Through this method, load balancing techniques can also be applied.
 
-In order to allow dynamic granularity adaptions, programmers have to supply the framework with a function that indicates how to divide the kernel with its respective data.
+One of the main features is the automatic granularity adaption of Kernels, which allows the appropriate partitioning of tasks according to respective performance capabilities of devices ina heterogeneous cluster. To enable the adaption programmers have to supply the framework with a function that indicates how to divide the kernel with its corresponding data.
 
-\subsection*{Static multi-device load balancing for OpenCL\cite{delalama_2012}}
-In this paper, an approach for executing a single kernel on multiple devices as well as a load balancing mechanism based on each devices's computing power is presented.
+\subsection*{Static multi-device load balancing for OpenCL}
+\citeauthor{delalama_2012} published an approach for executing a single kernel on multiple devices as well as a load balancing mechanism based on each device's computing power\cite{delalama_2012}.
 
-Instead of splitting the data (input buffers) into smaller parts, it replicates input buffers across the utilized devices and merges back the resulting output buffers.
+Instead of splitting the data into smaller parts, they replicate its entirety across the utilized devices and merge the resulting output buffers. These merges are based on an algorithm that finds buffer elements that underwent write operations during the execution and therefore should be present in the final result.
 
 As their future work they announce the development of dynamically adaptable load balancing algorithms.
 
 
-\subsection*{A multi-GPU Programming Library for Real-Time Applications\cite{mgpu}}
-The proposed framework called MGPU promises to support CUDA as well as OpenCL to allow execution of a Kernel on multiple GPUs within a single machine. It's targeted at real time applications like MRI scan data, which would not inherently benefit from cluster setups due to latency penalties.  In its current version MGPU focuses on CUDA due to its richer feature set.
+\subsection*{STEPOCL}
 
-MGPU employs a container architecture, which abstracts the device memory to a vector in main memory. Communication is done through MPI-based API.
+\citeauthor{stepocl} present a framework called STEPOCL, which offers programming multi-device applications in a specifically developed domain specific language\cite{stepocl}. Their key promoted features are linear performance scaling with increasing devices as well as comparable performance to hand written OpenCL applications.
 
-
-\subsection*{STEPOCL\cite{stepocl}}
-
-This paper presents a framework called STEPOCL, which offers programming multi-device applications in their own developed domain specific language. Their key promoted values are linear performance scaling with increasing devices as well as comparable performance to hand written OpenCL applications.
-
-STEPOCL takes an OpenCL Kernel with the following configurations:
+For a successful distribution of a Kernel across multiple devices STEPOCL requires OpenCL Kernels to be submitted with an accompanying configuration that describes the following facts:
 \begin{itemize}
-    \item Data layout to split data among devices
-    \item Tiling configuration depending on device type
-    \item Meta control flow of the application (loops etc.)
+    \item The data layout, which is used to split the data into subdivisions.
+    \item A tiling configuration depending on the targeted device types. E.g. specific work-group sizes for CPUs and GPUs.
+    \item A Meta control flow of the application, which for example allows iterative algorithms.
 \end{itemize}
 
-During compilation, STEPOCL identifies available devices that it can distribute the submitted workloads to. The distribution of splits is done dynamically through a profiling mechanism that takes into account the performance of each device during the previous iteration of a Kernel execution. Therefore it is especially meaningful for iterative algorithms like N-Body or k-Means.
+Utilizing the configuration an OpenCL Kernel is transformed to a new OpenCL Kernel that supports computing the partitioned data. During this compilation step STEPOCL identifies available devices that it can distribute the submitted workloads to. The distribution ratio of workloads per device is determined dynamically through a profiling mechanism that takes into account the performance of each device during the previous iteration of a Kernel execution. Therefore it is especially meaningful for iterative algorithms like N-Body or k-Means.
 
-\subsection*{Fluidic Kernels\cite{fluidic}}
+\subsection*{Fluidic Kernels}
 
-The paper proposes parallelizing Kernels among the CPU and GPU of a machine. They showcase two workloads that benefit rather from either CPU or GPU. In order to execute a Kernel in parallel on both devices, it is launched on the CPU as well as the GPU. While the GPU executes the whole OpenCL range from the front the CPU starts execution of work groups from the other end of the range in so called subkernels. After each finished subkernel, the CPU reports to the GPU the current work group ID. During execution of each work group, the GPU checks whether the current work group has been processed yet and can therefore identify when it has reached work groups that have already been computed by the CPU. Due to this mechanism the overall task is distributed according to the computational capabilities of the participating devices.
+The paper by \citeauthor{fluidic} proposes parallelizing Kernels among the CPU and GPU of a machine\cite{fluidic}. They showcase two workloads that benefit rather from either CPU or GPU. In order to execute a Kernel in parallel on both devices, it is launched on the CPU as well as the GPU. While the GPU processes the submitted work-groups from the front the CPU starts execution of from the other end in so called subkernels. After each finished subkernel, the CPU reports to the GPU the current work-group ID. During execution of each group, the GPU checks whether the current work-group has been processed yet and can therefore identify when it has reached work-groups that have already been computed by the CPU. Due to this mechanism the overall task is distributed according to the computational capabilities of the participating devices.
 
-\subsection*{Qilin\cite{qilin}}
-
-Qilin tries to solve the problem of distributing a workload among a CPU and GPU by using adaptive mapping for Intel Threading Building Blocks and CUDA. It uses empirical data to predict optimal distribution loads from previous executions of a program.
-
-When it encounters a program for the first time, it splits the work evenly among CPU and GPU, which each split the their parts into smaller subparts. For each subpart it records the execution time that are then used for curve fitting to find the optimal distribution ratio.
 
 \section{Cluster Distribution}
 
-\subsection*{VirtualCL\cite{virtualcl}}
+\subsection*{dOpenCL}
 
-VirtualCL wraps the local OpenCL implementation on a host machine and forwards the API calls to previously defined remote machines, which run a VirtualCL daemon that receives calls from the host node. Thus, VirtualCL creates the impression that the host machine would have all devices in the cluster installed locally.
+dOpenCL wraps the local OpenCL implementation in their own provided ICD. When the driver is used on the host it forwards the API calls to specified machines in the network, which run a dOpenCL daemon\cite{dopencl}. The calls are received by the daemon and executed using the available OpenCL installation on the remote machine with the results being returned via network. This allows to utilize remote devices as if they were installed locally in the host machine. For example a remote GPU would appear as if it was installed in the local machine's peripheral component interconnect express (abbr. PCIe) slot. Therefore OpenCL Kernels do not require changes to run remotely as dOpenCL hides network transfers behind the standard OpenCL API. An overview of the architecture for an example cluster is shown in figure \ref{dopencl_arch}.
 
-The authors show that network bandwidth and latency are the main bottlenecks of the approach but that long and compute intense kernels perform very well.
+\begin{figure}[H]
+	
+	\includegraphics[width=0.9\textwidth]{drawings/dopencl_arch.pdf}
+	\centering
+	\caption{dOpenCL Architecture Overview}
+	\label{img:dopencl_arch}
+\end{figure}
 
-VirtualCL offers an extension, called SuperCL, which is aimed at reducing network transfers by allowing multiple kernels being submitted to a remote node for serial execution. When these kernels depend on each other, the results are not transferred back and forth but stored in temporary buffers. It also supports more complex use cases like alternating iterative kernels.
+dOpenCL supports shared cluster environments in which multiple OpenCL programs run concurrently by employing a device manager. It processes the assignment of devices to specific Kernels and keeps track of device utilization within the cluster. Thus it ensures that a device is only used by a single Kernel at each point in time.
 
-\subsection*{dOpenCL\cite{dopencl}}
+In their evaluation \citeauthor{dopencl} show that for workloads with little data dOpenCL performs and scales very well. They also compare dOpenCL's ability to transfer data to and from remote devices using Gigabit Ethernet against PCIe bandwidths. In the results they conclude that dOpenCL reads the data 4.5x slower and writes 50x slower than their measured PCIe connection.
 
-Similar to VirtualCL, dOpenCL forwards OpenCL APIs to remote devices to create the image of a single machine, which has a multitude of devices installed, even when these are in fact only available through network.
+\subsection*{VirtualCL}
 
-dOpenCL offers a device manager, which keeps track of utilization of devices within the cluster and schedules submitted kernels accordingly.
+VirtualCL similarly to dOpenCL forwards OpenCL API calls to remote machines within a cluster\cite{virtualcl}. Just as dOpenCL it wraps its own ICD around the calls and refers them to running daemons on the remote machines.
 
-\subsection*{SnuCL\cite{snucl}}
+\citeauthor{virtualcl} evaluate various applications comparing the local versus remote runtimes via VirtualCL. They show that network bandwidth and latency are the main bottlenecks of their solution but that long and compute intense kernels with low data transfers perform very well.
 
-SnuCL provides a mechanism to access many heterogenous compute devices as if they were available in a single machine. Besides OpenCL, SnuCL also supports CUDA commands, which are forwarded to remote machines and executed there. Additionally, SnuCL abstracts CPU cores as a compute unit each and transforms OpenCL code to C code, which is then executed on top of a thread of each core.
+VirtualCL offers an extension, called SuperCL, which is aimed at reducing network transfers by allowing multiple kernels being submitted to a remote node for serial execution. When these kernels depend on each other, the results are not transferred back and forth but stored in temporary buffers. It also supports more complex use cases like alternating iterative kernels on the same data set.
 
-Furthermore, SnuCL introduces a virtual global memory, in which buffers may be shared among devices. It manages the consistency among shared buffers and attempts to minimize copy operations throughout the execution.
+\subsection*{SnuCL}
 
-\subsection*{DistCL\cite{distcl}}
-DistCL aims at merging multiple GPUs as a single virtual OpenCL device. DistCL creates a single context with one command queue that represents the aggregated device. For the purpose of distribution, DistCL splits Kernels into multiple Kernels with their respective subranges. In order to know, which data is accessed by a subrange, programmers have to supply a meta-function that determines the access pattern. Based on that function DistCL can only transfer relevant data to a device that executes a subrange.
+SnuCL represents another library aside from dOpenCL and VirtualCL that provides a mechanism to access compute devices of a cluster as if they were available locally in a single machine\cite{snucl}. Instead of simply forwarding API calls to remote machines, SnuCL heavily transforms Kernels depending on the available runtimes of a machine. For example it translates OpenCL to CUDA when only the CUDA platform is provided by the machine. Additionally, can transform OpenCL code to C code, which is then executed within a thread for each core of a CPU.
 
-\subsection*{MultiCL\cite{multicl}}
+Furthermore, SnuCL introduces a virtual global memory, in which buffers may be shared among devices. It manages the consistency among shared buffers and attempts to minimize copy operations throughout the execution in order to save bandwidth. This is achieved by translating the OpenCL code to C, which is then used to identify whether a buffer will be written during execution. Buffers that are not written can therefore remain on a device without the requirement to be copied back to the host.
 
-MultiCL is built on top of SnuCL and promises to schedule command queues approprietly among multiple devices in a cluster. They offer a round robin approach as well as an autofit mechanism. When queueing a computation, a flag can be provided, which labels the assumed bottleneck like computation, memory, I/O or iterative.
+\subsection*{DistCL}
+DistCL aims at merging multiple GPUs as a single virtual OpenCL device\cite{distcl}. To achieve this it abstracts the devices by representing them as one big device while handling Kernel distribution and data transfers transparently.In order to enable parallelization of a Kernel, DistCL automatically splits it into multiple Kernels with their respective required data, called subranges. In order to know, which data belongs to a subrange, programmers have to supply a meta-function that determines a memory access pattern. Based on that function DistCL can only transfer relevant data to a device that executes a subrange.
 
-In their static scheduling approach they simply profile all available devices and select the best fitting device based on the flagged bottleneck property. In their dynamic scheduling algorithm they apply different mechanisms based on the flag:
+\subsection*{MultiCL}
+
+MultiCL is built on top of SnuCL and promises to schedule Kernels appropriately among multiple heterogeneous devices in a cluster\cite{multicl}. They offer a round robin approach as well as an autofit mechanism. When queuing a Kernel, a flag can be attached to it, which labels the assumed execution type. As such Kernels can be marked as compute intense, memory bound, I/O bound or iterative.
+
+Their scheduling is can employ a static or a dynamic algorithm. In their static scheduling approach they profile all available devices in regards to memory bandwidth and instruction throughput. Based on that the best fitting device is select with respect to the Kernel flag. In their dynamic scheduling algorithm they apply different mechanisms depending on the flag:
 
 \begin{description}
-\item [Iterative] Cache previous Kernel execution times
-\item [Compute-Intensive] Minikernel Profiling
-\item [I/O-intensive] Data caching and minimized transfer operations
+\item [Iterative] Cache previous Kernel execution times to find best performing device
+\item [Compute-Intensive] Kernels are transformed to smaller minikernels that are profiled on every available device to receive a performance indicator
+\item [I/O-intensive] Extended data caching and minimized transfer operations for distributed executions
 \end{description}
 
-\subsection*{rCUDA\cite{rcuda}}
+\subsection*{rCUDA}
 
-rCUDA aims to reduce the number of GPU accelerators in a cluster by not installing one in every machine but instead enable sharing the accelerators across the network. It also uses API forwarding to execute CUDA commands on the remote server and retrieve the respective result.
+rCUDA aims to reduce the number of GPU accelerators in a cluster by not installing one in every machine but instead enable sharing the accelerators across machines within the network\cite{rcuda}. The applied technique comprises API forwarding to execute CUDA commands on the remote server and retrieve the respective result.
 
-Their main focus when evaluating performance lies on power savings. When reducing the number of accelerators by 90\%, they were able to achieve a 20\% decrease in power consumption. Still, they are aware that this reduction can lead to a significant performance degradation depending on the running applications within the cluster.
+The main focus of the presented performance evaluation lies on power savings. When reducing the number of accelerators in the tested cluster by 90\%, a 20\% decrease in power consumption could be determined. Still, the authors are aware that this reduction can lead to a significant performance degradation depending on the running applications within the cluster.

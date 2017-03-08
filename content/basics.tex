@@ -34,41 +34,44 @@ CUDA is an API released by NVIDIA, which enables NVIDIA GPUs to be used for gene
 
 \section{OpenCL}
 \label{opencl}
-OpenCL is a framework that represents a direct competitor to CUDA. It was initially proposed by Apple but is now currently by the Khronos Group, which consists of a multitude of companies like AMD, Intel, NVIDIA and others \cite{opencl_directors}. Unlike CUDA, OpenCL is not limited to NVIDIA GPUs but supports various device types and vendors. Instead OpenCL programs may be executed on CPUs, GPUs, FPGAs and digital signal processor (abbr. DSP). Prerequisite for the execution of OpenCL code on a machine is the presence of an OpenCL Installable Client Driver (abbr. ICD) for a targeted device. Such ICDs must conform with the specifications released by the Khronos Group. As of today, various implementations of the specifications exist by vendors like AMD, NVIDIA, Intel, Apple, ARM, Xilinx and others \cite{opencl_conform}.
+OpenCL is a framework that represents a direct competitor to CUDA. It was initially proposed by Apple but is currently maintained by the Khronos Group, which consists of a multitude of companies like AMD, Intel, NVIDIA and others \cite{opencl_directors}. Unlike CUDA, OpenCL is not limited to NVIDIA GPUs but supports various device types and vendors. In fact OpenCL programs may be executed on CPUs, GPUs, FPGAs and digital signal processor (abbr. DSP). Prerequisite for the execution of OpenCL code on a targeted device is the presence of an OpenCL Installable Client Driver (abbr. ICD) on its enclosing host machine. Such ICDs must conform with the specifications released by the Khronos Group. As of today, various implementations of the specifications exist by vendors like AMD, NVIDIA, Intel, Apple, ARM, Xilinx and others \cite{opencl_conform}.
 
-The most important definitions within the OpenCL standard are the introduction of its programming model as well as the underlying memory model:
+The most important definitions within the OpenCL standard are the introduction of its execution model as well as the underlying memory model, which are explained based on the OpenCL Specification Version 2.2 document \cite{opencl_spec}.
 
-\begin{description}[style=nextline]
-    \item [Programming Model]
-    OpenCL programs, called Kernels are executed in parallel on devices, namely for each work-item, which is the smallest partial unit of a submitted task. For example a work-item could be an element of an array that is being processed. Work-items are bundled in work-groups like smaller subdivisions of an array, which allow for synchronization within the group. As such all work-items within a work-group are handled by the same Compute Unit (abbrv. CU), which for instance could be a CPU core. The independence of work groups allows for their parallel execution across multiple CUs.
+\subsection*{Execution Model}
+OpenCL programs, called Kernels are executed on selected OpenCL devices. They are started from within a host program, which runs on the host that has the devices installed. A Kernel is run for each work-item, which is the smallest partial unit of a submitted task. For example a work-item could be an element of an array that is being processed. Work-items are bundled in work-groups that represent a subdivision of the overall processable data. in the OpenCL model devices consist of compute units (abbr. CU), which for instance for a CPU could be a CPU core. Each work-group is assigned to a CU that processes it. 
 
-    During execution multiple work-items are processed in parallel in so called wavefronts (AMD terminology) or warps (NVIDIA terminology). From here on the term wavefront will be utilized. Work-items within a wavefront are executed in lockstep, which means that all branches like both paths of if-conditions are run for very item, even when only a single work-item diverges. Therefore conditional constructs may lead to significant performance penalties.
+Through the execution model there exist two layers of parallelization. Firstly work-groups are independent of each other they can be executed in parallel when a device has more than one CU installed. Secondly the underlying CUs may be able to parallelize the execution for many work-items as well. This is entirely depending on the respective hardware capabilities and vendor implementation. For example modern AMD GPUs execute work-groups in so called wavefronts. A wavefront can contain up to 64 work-items, which are executed in batches of 16 items per clock cycle and thus take 4 clock cycles to cover all enclosed items\cite{amd_opencl_spec}. This means that an optimal work-group size for these devices is a multiple of 64 to ensure full utilization of a wavefront.
 
-    Wavefronts in modern AMD GPUs contain 64 work-items of which 16 are handled in parallel and the whole wavefront is executed within 4 clock cycles. Therefore work-groups should have a size multiple of 64 in order to evenly fill the wavefronts per CU. Having many wavefronts assigned per CU also enables OpenCL to hide latencies for required memory accesses. Whenever a wavefront needs to access memory, which would stall its threads, the CU switches to another wavefront and continues executing it until it also needs to access memory or finishes execution.
+NVIDIA GPUs on the other hand execute work-groups in so called warps, which can hold up to 32 work-items that are processed in parallel by 32 threads\cite{nvidia_pascal_spec}. This illustrates the level of abstraction of OpenCL, which enables to unify devices with significantly differing hardware implementations to compute under a single model.
 
-    \item [Memory Model]
-    In its standard, OpenCL defines four different memory levels:
-    \begin{description}[align=left]
-      \item [private] Only accessible by a work-item itself.
-      \item [local] Accessible by work-items within a work-group.
-      \item [global] Can be read by and written to by the host as well as all work-items.
-      \item [constant] Like global memory but read-only.
-    \end{description}
+Having many work-groups assigned per CU also enables OpenCL to hide latencies for required memory accesses. Whenever a CU needs to access memory, which would stall its threads, the CU may switch to another processable work-group and continue execution until this work-group also stalls. Thus the time for memory accesses is spent computing instead of idling the CU.
 
-    All of the available memory levels have different sizes, depending on the utilized device and also require different clock cycles per access. For example, reading data from local memory can be a magnitude faster than from global memory but global memory offers far more space and allows for synchronization among all work-groups.
+\subsection*{Memory Model}
 
+Memory in OpenCL is divided into two major regions, the host memory and the device memory. The host memory is used by the host to store Kernels and execution data. For an execution the required data is transferred from the host memory to the device memory, which is subdivided into different levels:
+
+\begin{description}[align=left,leftmargin=0cm]
+  \item [Private] Only accessible by a work-item itself. Mainly used for temporary variables.
+  \item [Local] Accessible by work-items within a work-group. Can be used to share and synchronize data within a group.
+  \item [Global] Can be read by and written to by the host as well as all work-items.
+  \item [Constant] Memory that is allocated and initialized by the host is read-only by work-items.
 \end{description}
 
-OpenCL Kernels are written in OpenCL C, which is a superset of C99, containing additional keywords that are related to memory access and synchronization. Such Kernels have to be started from so called host code, which runs on the machine that contains the targeted devices. The host code is usually written in C or C++ as the standard offers APIs for these languages. Still, third parties offer bindings for other languages. The following list contains some available language bindings:
+All of the available memory levels have different sizes, depending on the utilized device and also require different clock cycles per access. For example, reading data from local memory can be a magnitude faster than from global memory but global memory offers far more space and allows for synchronization among all work-groups. Additionally calls to the global memory may be cached based on the caching capabilities of the respective device.
 
-\begin{description}[align=left]
+\subsection*{Kernels}
+
+OpenCL Kernels are written in OpenCL C, which is a superset of C99, containing additional keywords that are related to memory access and synchronization. Kernels have to be started from so called host code, which runs on the machine that contains the targeted devices. The host code is usually written in C or C++ as the standard offers APIs for these languages. Still, third parties offer bindings for other languages. The following list contains some available language bindings:
+
+\begin{description}[align=left,labelwidth=1.5cm]
   \item [Java] JOCL, Aparapi
   \item [.NET] OpenCL.NET, Cloo
   \item [Python] PyOpenCL, PyCL
   \item [Ruby] Ruby-OpenCL
 \end{description}
 
-While the OpenCL standard enables the execution of identical code on heterogenous platforms, certain limitations still apply based on the capabilities of the utilized devices. For instance, code that uses the double data type can only be sucessfully run on devices that offer that feature. The following kernel code describes the addition of two arrays:
+The following kernel code describes the summation of elements at identical indexes of two arrays:
 
 \begin{lstlisting}[language=C++]
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
@@ -79,7 +82,11 @@ __kernel void run(__global double *a, __global double *b, __global double *c){
 }
 \end{lstlisting}
 
-For this example the host code that is responsible for choosing an appropriate device, initiating data transfers and other auxiliary tasks has been omitted. With around 50 lines of code it is considerably longer than the actual kernel code. Executing the snippet on an early 2015 Macbook Air may lead to two different results. On the one hand, execution on the built-in i5-5250U CPU will correctly add the two provided arrays and save the result in a third array. On the other hand the included Iris Graphics 6100 GPU will produce an error as it does not support the required OpenCL FP64 extension.
+Line 1 enables the OpenCL extension for double-precision floating point numbers, which is necessary for running the code. In line 3 the method declaration is visible that consists of three parameters. Each parameter is a pointer to an array of doubles residing in \textit{global} memory. As the Kernel is run for every work-item, line 4 identifies the global work-item index by calling \textit{get\_global\_id}. The acquired index is used in line 5 to process the actual computation where the result of the sum of array \textit{a} and array \textit{b} at the index is written to array \textit{c}.
+
+For this example to run the host code has to choose an appropriate device, initiate data transfers and perform other auxiliary tasks. The host code has been omitted for clarity as with around 50 lines of code it is considerably longer than the actual kernel code. 
+
+While the OpenCL standard enables the execution of identical code on heterogeneous platforms, certain limitations still apply based on the capabilities of the utilized devices. For instance, code that uses the double data type can only be successfully run on devices that offer that feature. Executing the above snippet on an early 2015 Macbook Air may lead to two different results. On the one hand, execution on the built-in i5-5250U CPU will correctly add the two provided arrays and return the result. On the other hand the included Iris Graphics 6100 GPU will produce an error as it does not support the required OpenCL \textit{FP64} extension.
 
 While OpenCL supports more device types and vendors it seems questionable whether having a general programming model comes with the price of performance penalties when compared to the specialized CUDA platform. Karimi, Dickson and Hamze have shown that CUDA code may be ported to OpenCL with only few modifications but will run between 16\% and 67\% slower depending on the problem size of their implemented Monte Carlo simulation\cite{performance_comparison}. On the opposite, Fang and Varbanescu and Sips have come to the conclusion that such performance gaps are influenced by the differences between the programming models and may be prevalent due to programming mistakes and compiler optimizations\cite{comprehensive_performance_comparison}. They reason that with all issues in mind, OpenCL can reach the same performance as CUDA.
 
@@ -107,16 +114,13 @@ for(Double result:c){
 }
 \end{lstlisting}
 
-The above code takes two arrays of doubles and computes the sum of contained elements at the same index, saving the result in a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read in order to improve performance. This is especially useful when input data does not change during computation and therefore does not have to be copied back to the host. While an original OpenCL implementation would require roundabout 50 lines of auxiliary code, Aparapi abstracts tasks like device selection and data handling when no specific control is needed. This enables developers to program algorithms considerably faster and allows beginners quick access to OpenCL features without knowledge of low level mechanisms.
+The above code reproduces the example code from section \ref{opencl} in which elements at the same index of two arrays are summed and written to a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read in order to improve performance. This is especially useful when input data does not change during computation and therefore does not have to be copied back to the host. While an original OpenCL implementation would require roundabout 50 lines of auxiliary code, Aparapi abstracts tasks like device selection and data handling when no specific control is needed. This enables developers to program algorithms considerably faster and allows beginners quick access to OpenCL features without knowledge of low level mechanisms.
 
-Although the code translation of Aparapi may work for many use cases, certain limitations apply to the Java code that can be handled. The following list covers some of these restrictions:
+Although the code translation of Aparapi may work for many use cases, certain limitations apply to the Java code that can be handled. Information about these restrictions can be found in the documentation on GitHub \cite{aparapi_kernel_guidelines}, which is partly outdated as newer features lifted corresponding limitations. The following list represents a selection of Kernel restrictions that may affect common code patterns:
 
 \begin{description}[style=nextline]
   \item [Data Types]
-  The supported primitive data types are boolean, byte, short, int, long, and float. Additionally, only one-dimensional arrays comprised of these primitive types are allowed.
-
-  \item [Object Orientation]
-  While Aparapi supports Java objects, it can only translate classes whose attributes are again primitives. Also such classes should allow access to the attributes through getter and setter functions.
+  The supported primitive data types are boolean, byte, short, int, long, and float. While Aparapi supports Java objects, it can only translate classes whose attributes are again primitives. Also such classes should allow access to the attributes through getter and setter functions.
 
   \item [Control Flow]
   Aparapi only supports conditionals and counting for-loops. Switch, break, continue, enhanced for-loops and recursion are not allowed.
