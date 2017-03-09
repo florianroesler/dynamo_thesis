@@ -42,7 +42,7 @@ The paper by \citeauthor{fluidic} proposes parallelizing Kernels among the CPU a
 
 
 \section{Cluster Distribution}
-
+\label{cluster_distribution}
 \subsection*{dOpenCL}
 
 dOpenCL wraps the local OpenCL implementation in their own provided ICD. When the driver is used on the host it forwards the API calls to specified machines in the network, which run a dOpenCL daemon\cite{dopencl}. The calls are received by the daemon and executed using the available OpenCL installation on the remote machine with the results being returned via network. This allows to utilize remote devices as if they were installed locally in the host machine. For example a remote GPU would appear as if it was installed in the local machine's peripheral component interconnect express (abbr. PCIe) slot. Therefore OpenCL Kernels do not require changes to run remotely as dOpenCL hides network transfers behind the standard OpenCL API. An overview of the architecture for an example cluster is shown in figure \ref{dopencl_arch}.
@@ -90,6 +90,10 @@ Their scheduling is can employ a static or a dynamic algorithm. In their static 
 
 \subsection*{rCUDA}
 
-rCUDA aims to reduce the number of GPU accelerators in a cluster by not installing one in every machine but instead enable sharing the accelerators across machines within the network\cite{rcuda}. The applied technique comprises API forwarding to execute CUDA commands on the remote server and retrieve the respective result.
+rCUDA aims to reduce the number of GPU accelerators in a cluster by sharing the accelerators across machines within the network\cite{rcuda}. Thus not every machine is required to have a GPU installed within. The applied technique comprises API forwarding to execute CUDA commands on the remote server and retrieve the respective result.
 
-The main focus of the presented performance evaluation lies on power savings. When reducing the number of accelerators in the tested cluster by 90\%, a 20\% decrease in power consumption could be determined. Still, the authors are aware that this reduction can lead to a significant performance degradation depending on the running applications within the cluster.
+The main focus of the presented performance evaluation lies on power savings. When reducing the number of accelerators in considered cluster by 90\%, a 20\% decrease in power consumption could be determined. Still, the authors are aware that this reduction can lead to a significant performance degradation depending on the running applications within the cluster.
+
+\subsection*{Virtualizing CUDA Enabled GPGPUs on ARM Clusters}
+
+\citeauthor{arm_virtual_cuda} present an architecture in which a cluster of low powered ARM devices accesses powerful remote NVIDIA GPUs through a virtual interface\cite{arm_virtual_cuda}. Their approach is based on API forwarding but features the connection of a private cluster to machines that are located in a cloud. In their example cluster they connect local ARM devices to GPUs that are provided by Amazon's cloud.
