@@ -4,7 +4,7 @@
 \label{distribution}
 As portrayed in section \ref{distribution_basics} and \ref{related} many viable options exist to distribute tasks among devices within a single machine as well as across a cluster. This section will explain the reasons for selecting the fitting approaches based on the goals declared in section \ref{goals}. The options are considered based on different levels of parallelization, depicted in figure \ref{img:parallelization_levels}. Following this structure the final solution should be able to parallelize across connected clusters, machines within a cluster, multiple devices within a machine and ultimately across all available device cores.
 
-\begin{figure}[H]	
+\begin{figure}[H]
 	\includegraphics[width=0.55\textwidth]{drawings/parallelization_struct.pdf}
 	\centering
 	\caption{Levels of Parallelization}
@@ -20,7 +20,7 @@ Similar to OpenMP, MPI has matured over decades as a standard solution for low l
 
 On the opposite MapReduce based frameworks like Hadoop MapReduce offer a strict programming model with a fixed form to follow for each implemented algorithm. Multiple solutions were created by researchers utilizing OpenCL in conjunction with MapReduce. Hadoop MapReduce requires HDFS as the mandatory underlying file system. Thus not only MapReduce nodes but also HDFS nodes have to managed within the cluster.
 
-While many of the previously described cluster distribution approaches are used in professional projects, solutions exist that can circumvent the prevalent issues. OpenCL API forwarding libraries as shown in section \ref{cluster_distribution} can offload computational workloads to remote machines within a cluster without impacting programmers or requiring significant cluster management. Instead they wrap the execution and handle network communication and data transfers transparently while only requiring a running demon on a remote machine. Additionally API forwarding allows to send computations to distant clusters as long as a connection to the sending machine exists. 
+While many of the previously described cluster distribution approaches are used in professional projects, solutions exist that can circumvent the prevalent issues. OpenCL API forwarding libraries as shown in section \ref{cluster_distribution} can offload computational workloads to remote machines within a cluster without impacting programmers or requiring significant cluster management. Instead they wrap the execution and handle network communication and data transfers transparently while only requiring a running demon on a remote machine. Additionally API forwarding allows to send computations to distant clusters as long as a connection to the sending machine exists.
 
 The previously presented forwarding libraries include SnuCL, VirtualCL and dOpenCL. While all mentioned solutions introduce certain special features, the key feature to be considered is the API forwarding, which has to work stable in order to ensure a well functioning distribution of tasks. Therefore as a first step the three frameworks are installed on several machines of Class A and B, which are presented in \ref{cluster_composition}.
 
@@ -43,7 +43,7 @@ Based on the results, one can conclude that the remote computation itself is nea
 Concluding the findings and design decisions a framework named Dynamic OpenCL is proposed. An overview over the architecture is shown in figure \ref{img:dynamic_opencl_arch}. In its center works a \textit{Management Node} that runs the Dynamic OpenCL library in conjunction with dOpenCL. The library is among other things responsible for code abstractions and scheduling services, which are explained throughout this chapter. The management node is connected to several \textit{Compute Nodes} through dOpenCL, which have the dOpenCL daemon running. Using the connection the management node distributes tasks to remote devices located in the local cluster or provided by cloud services.
 
 \begin{figure}[H]
-	
+
 	\includegraphics[width=0.75\textwidth]{drawings/dynamic_opencl_arch.pdf}
 	\centering
 	\caption{Dynamic OpenCL Architecture}
@@ -76,18 +76,18 @@ As visible in the results in figure \ref{img:aparapi_vs_opencl}, Aparapi can rea
 \begin{description}[style=nextline]
 	\item [No available devices]
 	When querying dOpenCL for appropriate devices from Aparapi, none are returned even though multiple devices are available when using standard OpenCL. The problem for this symptom lies within dOpenCL, which insufficiently implements the query method. OpenCL uses a single byte to identify queried devices types. For instance \textit{00000010} queries CPUs and \textit{00000100} asks for GPUs. dOpenCL checks for the position of the positive bit and correctly returns devices of the requested type. In fact the OpenCL standard also allows bitwise OR-operations on multiple types so that when requesting for CPUs and GPUs in one query: \textit{00000010 OR 00000100 = 00000110}. As Aparapi only supports CPUs and GPUs, it specifically utilizes this byte even when the user only requests a CPU. The actual filtering is then done in Aparapi's Java code. Because dOpenCL does not support these combined queries, it can not return any devices to Aparapi. Therefore this method is fixed, which results in Aparapi successfully obtaining information about available devices.
-	
+
 	\item [Specific device choice]
 	Aparapi by design is focused on providing a simple API, which lacks certain features that are important for Dynamic OpenCL. For example it is desirable to have multiple instances of the same Kernel run in parallel with different data. Therefore it would be possible to split tasks into smaller subsets of data that could be distributed to various devices. Aparapi allows to define preferences on which specific device a Kernel should be run. This preference is saved on class level instead of instance level, which means that all instances of the same class would be directed to the same device. Therefore no parallelization is possible with the standard Aparapi version. In order to fix this issue, the mechanism for memorizing preferences is modified to respect the definitions for each individual instance of a Kernel.
-	
+
 	\item [Failed compilations when using multiple devices]
 	Due to fixing the previously described issues, the development system is able to successfully execute Kernels on a single node cluster. Adding a second machine with different installed devices produces an error during the OpenCL compilation process even when only one device is targeted for execution. In the given environment both nodes by itself are able to compile the Kernel without any incidents. Additionally it is verified that dOpenCL without Aparapi supports the multi node cluster. Therefore it is suspected that Aparapi has a bug that prevented the compilation when more than one machine was present. Through reviewing Aparapi internals the cause for the issue is found: Aparapi creates an OpenCL context not per device but per type. OpenCL contexts serve for sharing memory and control structures between multiple devices but can only be defined for devices of the same platform. Thus, when having multiple CPUs of different vendors in a cluster, Aparapi tries to create a context for all CPUs, which creates the error. In order to prevent this violation, in the fixed version contexts are created only for a single device.
-	
+
 	\item [Single platform per machine]
 	Systems that run OpenCL can support multiple platforms in parallel. For example, a machine that has an Intel CPU as well as a NVIDIA GPU installed offers two platforms. For a node with such a setup dOpenCL only recognizes the first platform, namely Intel, and ignores the NVIDIA platform. Reviewing the code reveals that this is indeed a fixed behavior in the code that by default only passes on the first found platform of a system. In order to support systems with multiple platforms at hand this code is reworked to recognize all available platforms.
-	
-\end{description} 
- 
+
+\end{description}
+
 
 \section{Job Design}
 \label{job_design}
@@ -96,23 +96,23 @@ With the implemented fixes described in section \ref{abstraction} Aparapi is abl
 \begin{description}[style=nextline]
 	\item [Manual Splits]
 	Hadoop MapReduce enforces saving input data for the executable tasks in split files on the Hadoop Distributed File System. Each split file is executed independently and programmers have to define how to interpret a split during the map phase. Ultimately, the individually programmed reduce algorithm merges the splits together to form a final result.
-	
+
 	\item [Naive Buffer Replication]
 	A simple and safe way to ensure that every split has the required data available is to transfer all data to the employed devices as done by \citeauthor{delalama_2012}\cite{delalama_2012}. Their method of buffer replication is trivial when transferring to the devices. On the opposite merging the individual output buffers back into the final result requires an algorithm to determine the parts that should be included by each split.
-	
+
 	\item [Intelligent Buffer Replication]
 	\citeauthor{Kim_2011}\cite{Kim_2011} have developed a mechanism to automatically determine how to split input buffers among subtasks in OpenCL so that only minimal data has to be transferred. Their method is based on sampling memory access patterns before sending the data so that lower and upper memory bounds can be determined.
-		
+
 	\item [Meta Functions]
 	\citeauthor{stepocl}\cite{stepocl} as well as \citeauthor{distcl}\cite{distcl} employ meta functions that are utilized to determine split data independent from the problem size. These meta functions have to be supplied by the programmer and define the memory access patterns by the algorithm.
-	
-\end{description} 
+
+\end{description}
 
 While all of the above mentioned methods are meaningful candidates, they each have negative impact either on performance or programming complexity: \textit{Naive Buffer Replication} increases total data transfer sizes, which enhances the chances of network congestion the higher the number of splits becomes. \textit{Intelligent Buffer Replication} requires an extra step for sampling memory accesses, which includes the translation of OpenCL to C code. Although \textit{Meta Functions} try to abstract efforts away from programmers they are still required to define the access patterns manually. \textit{Manual Splits} put the entire responsibility into the hands of the programmer who has to make sure that the data is split and merged back together. While it is the least automated method, it also grants full control over performance and is not dependent on split and merge algorithms that may fail for complex problems. Thus, the framework will support \textit{Manual Splits}. In order to show that such an approach is eligible in combination with Aparapi the following code example will illustrate the process of splitting the addition of two vectors into partial tasks:
 
 \begin{minipage}{\linewidth}
 
-\begin{lstlisting}
+\begin{lstlisting}[caption=Partial Aparapi Vector Addition Kernel,captionpos=b]
 public class AdditionKernel extends Kernel{
   int[] a, b, result;
 
@@ -180,19 +180,19 @@ While local clusters may provide cheap and stable performance when completely ut
 			\textbf{Std. Deviation}          & 5.2\%  	& 4.9\%		& 16.9\% \\
 		\end{tabular}
 	\end{adjustbox}
-	
+
 	\caption{NYU Cluster Utilization}
 	\label{table:cluster_utilization}
 \end{table}
 
-When providing a shared cluster that can be used by multiple parties, certain trade-offs apply. On the one hand overprovisioning decreases waiting times for users but increases costs. On the other hand underprovisioning reduces costs but comes with the price that users may have to line up in queues to access resources. In order to counter this imbalance, remote cloud machines could be employed, which can be booked and released dynamically and are billed hourly or even minutely. Among the most prominent services are Amazon's Elastic Compute Cloud (abbr. EC2), Microsoft's Azure and Google's App Engine. While each of these cloud services has its advantages and disadvantages, EC2 is the only that has bookable GPU instance types at various sizes. Although Azure and App Engine also have similar offerings, they are either only available as a preview in limited regions or can only be accessed by companies. Therefore, EC2 is used as the exemplary cloud service for this research but with interchangeability in mind so that it is possible to replace EC2 with other services in the future.
+When providing a shared cluster that can be used by multiple parties, certain trade-offs apply. On the one hand overprovisioning decreases waiting times for users but increases costs. On the other hand underprovisioning reduces costs but comes with the price that users may have to line up in queues to access resources. In order to counter this imbalance, remote cloud machines could be employed, which can be booked and released dynamically and are billed hourly or even minutely. Among the most prominent services are Amazon's EC2, Microsoft's Azure and Google's App Engine. While each of these cloud services has its advantages and disadvantages, EC2 is the only that has bookable GPU instance types at various sizes. Although Azure and App Engine also have similar offerings, they are either only available as a preview in limited regions or can only be accessed by companies. Therefore, EC2 is used as the exemplary cloud service for this research but with interchangeability in mind so that it is possible to replace EC2 with other services in the future.
 
 Interconnecting the framework with EC2 requires including the AWS software development kit (abbr. SDK), which is available for Java among many other languages. Through the SDK, the API for reserving and releasing instances can be accessed. Additionally, an Amazon Machine Image (abbr. AMI) is required so that newly launched instances will have OpenCL installed and run the dOpenCL daemon by default on startup. For this cause an Ubuntu 14.04 based image was created with the appropriate drivers and dOpenCL installed, which is started right after booting the machine.
 
 Adding and releasing machines within the framework shall be handled by a class called \textit{Machine Manager}, abstracting the actual implementation of the utilized SDK in order to enable users to interchange the underlying cloud provider:
 
 
-\begin{lstlisting}
+\begin{lstlisting}[caption=Machine Manager Abstract Implementation,captionpos=b]
 public abstract class MachineManager {
   protected abstract List<DynamoInstance> bookInstance(int count, String type);
   protected abstract void terminateInstances(List<DynamoInstance> instances);
@@ -221,7 +221,7 @@ In section \ref{job_design} the general job design was explained that is employe
 
 The general idea behind scaling performance within the framework is based on booking additional resources through a remote cloud when demand is high. Similarly, in the case of low demand resources can be released again in order to minimize costs. Widely employed cluster resource management solutions like Hadoop YARN include functionalities to add or remove nodes dynamically. In a YARN cluster each node is independent and communicates with a central master node that keeps track of utilized resources and handles each compute node as an individual entity. Offering a similar functionality in a dOpenCL based solution differs substantially:
 
-OpenCL and Aparapi were built to run on a single machine and as such include assumptions of limited capabilities concerning changing hardware during operation. For example Aparapi caches device queries to OpenCL as devices are usually added or removed during maintenance procedures when a machine is powered down. dOpenCL overcomes such limitations and enables the central machine to have devices virtually installed by adding nodes to the dOpenCL cluster. dOpenCL therefore extends the OpenCL standard by adding the custom methods \textit{clCreateComputeNodeWWU} and \textit{clReleaseComputeNodeWWU}. 
+OpenCL and Aparapi were built to run on a single machine and as such include assumptions of limited capabilities concerning changing hardware during operation. For example Aparapi caches device queries to OpenCL as devices are usually added or removed during maintenance procedures when a machine is powered down. dOpenCL overcomes such limitations and enables the central machine to have devices virtually installed by adding nodes to the dOpenCL cluster. dOpenCL therefore extends the OpenCL standard by adding the custom methods \textit{clCreateComputeNodeWWU} and \textit{clReleaseComputeNodeWWU}.
 
 As OpenCL itself has no multi-machine capabilties it only offers information for the respective built-in devices through the standard API. Therefore all devices appear as if they were installed in the central machine that runs the dOpenCL library. This makes identifying the owning machine per device impossible. Without the relation between devices and machines it can not be ensured that a machine meant to be released is not running any partial. In order to provide the machine-device relation dOpenCL introduced another method called \textit{clGetDeviceIDsFromComputeNodeWWU}.
 
@@ -244,9 +244,9 @@ In order to allow the scheduler to adapt to specific cluster requirements, a plu
 The first scheduling tier only considers the system state on a job abstraction level without having any knowledge about the actual partial structure or available devices in the cluster. Instead this tier is mainly concerned about ensuring predefined fairness policies and as such controls which jobs are eligible for consideration during this scheduling round. Algorithms available in Dynamic OpenCL for this tier are the following:
 
 \begin{description}[style=nextline]
-	\item[First-In First-Out (abbr. FIFO)] 
+	\item[First-In First-Out (abbr. FIFO)]
 	Jobs are fully prioritized by their submission time. Thus, partials of two jobs will be completely submitted sequentially with the older job coming in front. Example: Job A with two partials a and Job B with four partials b will lead to the order aabbbb.
-	\item[Round-Robin] 
+	\item[Round-Robin]
 	Tasks are put equally in rotating order so that each job gets a fair share of resources. Example: Job A with two partials a and Job B with four partials b will lead to the order ababbbb.
 \end{description}
 
@@ -275,16 +275,16 @@ A naive approach that combines both measurements for device performance as well 
 
 In order to offer algorithms on the second tier valuable data, several analytical features are added to Aparapi and Dynamic OpenCL:
 \begin{description}[style=nextline]
-	\item[Kernel Data Size] 
+	\item[Kernel Data Size]
 	Aparapi is extended by adding a method to the Kernel class that reports back the actual size of the overall Kernel including its data. The size is gained by employing Java reflection on a Aparapi Kernel, identifying used data types and data structures. As Aparapi offers explicit memory management not all of the data of a Kernel must be transferred. Therefore the returned size can only act as an approximation for the real amount of transferred data.
-	\item[Historical Data Transfer] 
+	\item[Historical Data Transfer]
 	While knowing the exact amount of transferable data beforehand in the context of explicit memory management requires challenging code analyses, retaining these values in the aftermath of a Kernel execution is feasible. For this cause the memory management calls of Aparapi are modified to accumulate the sizes of the corresponding data structures in a Kernel attribute. With this functionality the total amount of transferred data is available after a Kernel has been executed. Then the attribute can be utilized by schedulers to conclude decisions for future Kernels of the same job.
 	\item[Performance Cache]
 	Dynamic OpenCL implements a mechanism to retain execution times of Kernels for every device it was run on. The observed timespan reaches from the deployment of the Kernel from its host code until the end of execution, thus including network transfers. Therefore the measurement takes into account different locations of the devices within the network. This means that a cloud device should yield slower execution times than a similar local device due to the data transfer penalties. With the resulting data, schedulers can make decisions either based on individual devices or even draw conclusions for devices of the same type.
 \end{description}
 
 In the current version of Dynamic OpenCL the most basic device scheduler available is the \textit{Device Preference Scheduler}, which only considers the respective device preference flag attached to a partial without any further performance considerations.
-Based on the implemented \textit{Performance Cache} the \textit{Performance Based Device Scheduler} is also included. It assigns the currently available device with the best historical performance to a partial. With the available features concerning data transfer analysis more sophisticated and fine grained schedulers are possible to be implemented in the future. Additionally, system wide optimizations are feasible, which minimize the overall execution time of all submitted partials. For instance, a Simplex algorithm based scheduler would take into account trade off scenarios where it is beneficial not to grant a partial its best suited device but minimize the expected execution time among all scheduling decisions. 
+Based on the implemented \textit{Performance Cache} the \textit{Performance Based Device Scheduler} is also included. It assigns the currently available device with the best historical performance to a partial. With the available features concerning data transfer analysis more sophisticated and fine grained schedulers are possible to be implemented in the future. Additionally, system wide optimizations are feasible, which minimize the overall execution time of all submitted partials. For instance, a Simplex algorithm based scheduler would take into account trade off scenarios where it is beneficial not to grant a partial its best suited device but minimize the expected execution time among all scheduling decisions.
 
 It must be noted that schedulers on this tier may rightfully ignore the order of partials given by the first tier. For example the first tier might hand over a list of partials in FIFO order. If this list is handled by a Simplex based scheduler on the second tier, the principle of FIFO may be violated in favor of finding the optimal distribution.
 
@@ -295,25 +295,24 @@ In the previous sections the main characteristics of Dynamic OpenCL were explain
 \begin{description}[style=nextline]
 	\item[Job Based Library]
 	One use case for the framework is to utilize it as a Java library for a single job thus keeping management overhead minimal. Programmers can either transform OpenCL code from C or C++ to Aparapi or adapt already existant Aparapi code. In theory Aparapi code can be submitted to Dynamic OpenCL without any changes but would not fit into the required partial structure and therefore run in a single Kernel. In order to enable parallelization, programmers are mandated to split their jobs into smaller partials and submit those.
-	
+
 	With the focus on a single job Dynamic OpenCL can schedule the submitted partials across a given cluster and report back results. As there are no other jobs to interfere, no extensive scheduling is required and all resources can be freely assigned to the job at hand. In the case of a slower execution than expected users may book additional resources from an implemented cloud service and therefore reduce overall execution time in return for higher costs.
-	
-	\item[Local Cluster Provider] 
-	
+
+	\item[Local Cluster Provider]
+
 	Instead of only acting on behalf of a single job, programmers can utilize Dynamic OpenCL to offer a shared platform for users to submit their jobs to. This becomes especially meaningful in the light of daily recurring jobs that only have to be programmed once. The platform could allow users to submit data to predefined jobs that take care of splitting the data into meaningful chunks. Therefore users can profit from parallelization on powerful hardware without having programming knowledge on their own.
-	
+
 	The main limitation of the local cluster provider is its restriction to local resources only. Therefore the platform can not dynamically book instances from a cloud provider and with that increase the overall capabilities of the cluster. Running a shared platform on a local cluster may require some performance based scheduling in order to optimize resource assignments based on the running jobs.
-	
-	\item[Hybrid Cloud Provider] 
+
+	\item[Hybrid Cloud Provider]
 	Local clusters may lead to phases of overprovisioning when resource demands by users are low, thus causing costs without any return in computation. In order to provide a more dynamic infrastructure Dynamic OpenCL can be used to guarantee a baseline of performance through local resources and add devices to the cluster from a cloud service when needed. While cloud devices may be more costly than local resources they can assist during peak demands and be released afterwards. Hence the overall costs of using a cloud resource may be lower than operating an underutilized local device.
-	
+
 	Additionally, volatile hardware requirements may lead to high total costs of ownerships. For instance, if only one job per month requires a GPU for efficient execution, installing a GPU in the local cluster might be costly. Instead such resources could be employed on demand whenever a job with such requirements is submitted.
-	
+
 	The main drawback of a hybrid cluster is the interconnection between both clusters that may suffer from low bandwidths. Therefore scheduling algorithms should be utilized that take the hybrid infrastructure into account and assign partials accordingly.
-	
+
 	\item[Cloud Cluster Provider]
 	While hybrid clusters unite a static performance baseline with dynamic adjustments based on demand, a completely customizable infrastructure is also possible. Instead of having computational resources running at all times, cloud clusters may only run a single management node. This central node receives jobs and orders new cloud resources depending on the actual demand. At times of no demand the management node runs alone, hence producing minimal costs.
-	
-	
-\end{description}
 
+
+\end{description}

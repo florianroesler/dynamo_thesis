@@ -79,7 +79,7 @@ Some of the benchmarks employ cloud instances provided by Amazon's EC2. Customer
 	\label{table:cluster_setup_ec2}
 \end{table}
 
-For both instance types the network speeds are measured by launching the iperf3 and ping from within the EC2 on a third c4.8xlarge instance. The results can be seen in table \ref{table:cluster_interconnect_benchmarks} and demonstrate very high bandwidths and low latencies.
+For both instance types the network speeds are measured by launching the iperf3 and ping from within the EC2 on a third c4.8xlarge instance. The results can be seen in table \ref{table:cluster_interconnect_benchmarks} and demonstrate high bandwidths and low latencies.
 
 \begin{table}[!htb]
 	\centering
@@ -110,13 +110,13 @@ It must be noted that a matrix multiplication can not be perfectly split for par
 
 \subsection*{Mandelbrot Set}
 
-Mandelbrot sets can be used to draw fractals by calculating membership to the set for each coordinate of an image. Assuming a square image the computation belongs to the complexity class $O(n^2)$. An important feature of Mandelbrot calculations is the possibility to increase computation times without growing the size of the image. This can be done by raising the iterations factor, which determines the precision of the resulting picture. Therefore Mandelbrot set computations can be very time consuming while requiring only small input data.
+Mandelbrot sets can be used to draw fractals by calculating membership to the set for each coordinate of an image. Assuming a square image the computation belongs to the complexity class $O(n^2)$. An important feature of Mandelbrot calculations is the possibility to increase computation times without growing the size of the image. This can be done by raising the iterations factor, which determines the precision of the resulting picture. Therefore Mandelbrot set computations can be time consuming while requiring only small input data.
 
 In terms of parallelization Mandelbrot sets can be perfectly split as only the coordinates of a point are required to compute membership. Thus, there is no data overhead involved in dividing the computation to multiple machines.
 
 \subsection*{N-Body Problem}
 
-The n-body problem is mainly used in astrophysics to determine celestial movement, which is heavily influenced by gravitational effects. Celestial bodies act forces on each other, even when distances are huge. For instance, the earth is influenced by every existing object in the universe but most of these forces are very weak in comparison to the sun's gravitation. Calculating the n-body problem without approximations therefore requires to accumulate the imposed forces on every object by all other objects. Thus, the complexity class is $O(n^2)$.
+The n-body problem is mainly used in astrophysics to determine celestial movement, which is heavily influenced by gravitational effects. Celestial bodies act forces on each other, even when distances are huge. For instance, the earth is influenced by every existing object in the universe but most of these forces are weak in comparison to the sun's gravitation. Calculating the n-body problem without approximations therefore requires to accumulate the imposed forces on every object by all other objects. Thus, the complexity class is $O(n^2)$.
 
 It must be noted that dividing the n-body problem for parallelization leads to significant overhead as each split requires the whole dataset to calculate influences by every object. This means that for $n$ splits the data set has to be transfered $n$ times as well.
 

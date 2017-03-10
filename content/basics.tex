@@ -6,7 +6,7 @@
 \subsection{OpenMP and OpenACC}
 OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program \cite{openmp_spec}. The resulting code can then be run in multiple threads that can be scheduled on many CPU cores in parallel.
 
-\begin{lstlisting}[language=C]
+\begin{lstlisting}[caption=OpenMP Code Example,captionpos=b]
 void example()
 {
 int i = 0;
@@ -15,7 +15,6 @@ int n = 10;
 for (i=1; i<n; i++) /* i is private by default */
 b[i] = (a[i] + a[i-1]) / 2.0;
 }
-
 \end{lstlisting}
 
 
@@ -79,7 +78,7 @@ OpenCL Kernels are written in OpenCL C, which is a superset of C99, containing a
 
 The following kernel code describes the addition of two vectors, in which the elements at identical indexes of two arrays are accumulated:
 
-\begin{lstlisting}[language=C++]
+\begin{lstlisting}[caption=OpenCL Vector Addition Kernel,captionpos=b]
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 __kernel void run(__global double *a, __global double *b, __global double *c){
@@ -101,7 +100,7 @@ While OpenCL supports more device types and vendors it seems questionable whethe
 Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL Kernels. Firstly, it contains bindings to access OpenCL functions through a Java Native Interface (abbr. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. Therefore, programmers can build classes that inherit the provided abstract Kernel class by Aparapi. The following code snippet shows such an implemented Kernel:
 
 \begin{minipage}{\linewidth}
-\begin{lstlisting}
+\begin{lstlisting}[caption=Aparapi Vector Addition Kernel,captionpos=b]
 final double[] a = new double[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 final double[] b = new double[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 final double[] c = new double[10];

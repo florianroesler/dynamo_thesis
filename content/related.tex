@@ -57,13 +57,13 @@ dOpenCL wraps the local OpenCL implementation in their own provided ICD. When th
 
 dOpenCL supports shared cluster environments in which multiple OpenCL programs run concurrently by employing a device manager. It processes the assignment of devices to specific Kernels and keeps track of device utilization within the cluster. Thus it ensures that a device is only used by a single Kernel at each point in time.
 
-In their evaluation \citeauthor{dopencl} show that for workloads with little data dOpenCL performs and scales very well. They also compare dOpenCL's ability to transfer data to and from remote devices using Gigabit Ethernet against PCIe bandwidths. In the results they conclude that dOpenCL reads the data 4.5x slower and writes 50x slower than their measured PCIe connection.
+In their evaluation \citeauthor{dopencl} show that for workloads with little data dOpenCL performs and scales well. They also compare dOpenCL's ability to transfer data to and from remote devices using Gigabit Ethernet against PCIe bandwidths. In the results they conclude that dOpenCL reads the data 4.5x slower and writes 50x slower than their measured PCIe connection.
 
 \subsection*{VirtualCL}
 
 VirtualCL similarly to dOpenCL forwards OpenCL API calls to remote machines within a cluster\cite{virtualcl}. Just as dOpenCL it wraps its own ICD around the calls and refers them to running daemons on the remote machines.
 
-\citeauthor{virtualcl} evaluate various applications comparing the local versus remote runtimes via VirtualCL. They show that network bandwidth and latency are the main bottlenecks of their solution but that long and compute intense kernels with low data transfers perform very well.
+\citeauthor{virtualcl} evaluate various applications comparing the local versus remote runtimes via VirtualCL. They show that network bandwidth and latency are the main bottlenecks of their solution but that long and compute intense kernels with low data transfers perform well.
 
 VirtualCL offers an extension, called SuperCL, which is aimed at reducing network transfers by allowing multiple kernels being submitted to a remote node for serial execution. When these kernels depend on each other, the results are not transferred back and forth but stored in temporary buffers. It also supports more complex use cases like alternating iterative kernels on the same data set.
 
