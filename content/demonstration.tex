@@ -5,12 +5,12 @@ In the previous chapters Dynamic OpenCL was used as a library that was included 
 \section{Architecture}
 
 \begin{figure}[!htb]
-	\includegraphics[width=0.6\textwidth]{drawings/demo_architecture.pdf}
+	\includegraphics[width=0.7\textwidth]{drawings/demo_architecture.pdf}
 	\centering
 	\caption{Demo Architecture}
 	\label{img:demo_architecture}
 \end{figure}
-The architecture of the developed system is shown in figure \ref{img:demo_architecture}. Users can access the service via a web frontend. As Dynamic OpenCL is written in Java and as such is distributed as a JAR file, the web frontend must run in a JVM. In this case the web server is written in Ruby and runs as a JRuby application, which executes the Ruby code in a JVM. 
+The architecture of the developed system is shown in figure \ref{img:demo_architecture}. Users can access the service via a web frontend on the management node. As Dynamic OpenCL is written in Java and as such is distributed as a JAR file, the web frontend must run in a JVM. In this case the web server is written in Ruby and runs as a JRuby application, which executes the Ruby code in a JVM. 
 
 The web site offers user interfaces for submitting and reviewing jobs or changing the cluster configuration. It mainly communicates with Dynamic OpenCL and passes execution calls to it or retrieves necessary information from it. Dynamic OpenCL then is connected to the local dOpenCL installation that carries out the actual computations either on local hardware or cloud resources. The web frontend also allows users to dynamically book cloud instances. These bookings are carried out by Dynamic OpenCL through the AWS SDK, which communicates with the EC2 cloud.
 \section{Screenshots}

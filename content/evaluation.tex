@@ -1,8 +1,8 @@
 \chapter{Evaluation}
 
-In section \ref{distribution} and \ref{abstraction} it was shown that dOpenCL and Aparapi deliver satisfying performance when used on their own. Combining both libraries within Dynamic OpenCL creates the question whether the overall solution can still bring noticeable benefits to cluster computations.
+In section \ref{distribution} and \ref{abstraction} it was shown that dOpenCL and Aparapi deliver satisfying performance when used on their own. Combining both libraries within Dynamic OpenCL demands proof whether the overall solution can still bring noticeable benefits to cluster computations.
 
-For a meaningful evaluation different cluster setups based on specific scenarios are employed. Those include local clusters, hybrid clusters as well as pure cloud clusters. The employed local machine types and workloads are defined in chapter \ref{benchmarking_methodology}. In the case of cloud resources the individual capabilities are explained in place.
+For a meaningful evaluation different cluster setups based on various scenarios are employed. Those include local clusters, hybrid clusters as well as pure cloud clusters. The employed machine types and workloads are defined in chapter \ref{benchmarking_methodology}.
 
 \section{Benchmark Specification}
 
@@ -36,7 +36,7 @@ In order to simulate a shared cluster environment it becomes necessary to evalua
 		\end{tabular}
 	\end{adjustbox}
 	
-	\caption{Benchmark Job Setup}
+	\caption{Benchmark Job Suite Setup}
 	\label{table:benchmark_job_setup}
 \end{table}
 
@@ -84,7 +84,7 @@ The benchmark results for the matrix multiplication in figure \ref{img:fully_ass
 	\label{img:fully_assisted_parallel_mandelbrot}
 \end{figure}
 
-In the case of the Mandelbrot set the cluster performs much better as shown in figure \ref{img:fully_assisted_parallel_mandelbrot}. While the second machine can improve the performance by a near perfect speedup of around x1.9 even the third and fourth machine can reproduce this behavior with a speedup x2.85 and x3.7 respectively. From the results it can be inferred that the fifth machine saturates the performance for the given workload with a maximum speedup of x4.0. A probable explanation for this barrier is the inequality in required computations among splits. This causes additional machines to remain idle for the majority of the time as not enough splits with longer computations are available.
+In the case of the Mandelbrot set the cluster performs much better as shown in figure \ref{img:fully_assisted_parallel_mandelbrot}. While the second machine can improve the performance by a near perfect speedup of around x1.9 even the third and fourth machine can reproduce this behavior with a speedup x2.85 and x3.7 respectively. From the results it can be inferred that the fifth machine saturates the performance for the given workload with a maximum speedup of x4.0. A probable explanation for this barrier is the inequality in computational complexity among splits. This causes additional machines to remain idle for the majority of the time as not enough splits with longer computations are available.
 
 \subsubsection*{Job Suite Performance}
 
