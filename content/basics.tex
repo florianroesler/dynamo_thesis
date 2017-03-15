@@ -1,44 +1,81 @@
 \chapter{Basics}
 
-\section{Distribution Methods}
+\section{Basic Distribution Methods}
 \label{distribution_basics}
 
-\subsection{OpenMP and OpenACC}
-OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program \cite{openmp_spec}. The resulting code can then be run in multiple threads that can be scheduled on many CPU cores in parallel.
+\subsection*{OpenMP and OpenACC}
+Open Multi-Processing(abbr. OpenMP) represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program \cite{openmp_spec}. The resulting code can then be run in multiple threads that can be scheduled on many CPU cores in parallel. OpenACC offers similar functionality as OpenMP but aims at offloading parallel computations to attached accelerators like GPUs \cite{openacc_spec}. Thus if offers additional keywords specifically for assigning parallel computations to available accelerators.
 
 \begin{lstlisting}[caption=OpenMP Code Example,captionpos=b]
 void example()
 {
-int i = 0;
-int n = 10;
-#pragma omp parallel for
-for (i=1; i<n; i++) /* i is private by default */
-b[i] = (a[i] + a[i-1]) / 2.0;
+  int i;
+  int n = 10;
+  #pragma omp parallel for
+  for (i=0; i<n; i++)
+    printf("%d", i);
 }
 \end{lstlisting}
 
+The above OpenMP example written in C presents a simple parallelized loop that prints the index of the current iteration. As multiple iterations can be executed at the same time, the printed digits do not necessarily have to be in order such as \textit{0128967354}. 
 
-OpenACC offers similar functionality as OpenMP but aims at offloading parallel computations to attached accelerators like GPUs \cite{openacc_spec}. 
+\subsection*{MPI}
+Although OpenMP and OpenACC are powerful tools for parallelization on a single machine, in order to write large scale software, communications across multiple machines are necessary. One standard tool to achieve this is Message Passing Interface (abbr. MPI).
+It offers bindings to many languages and extends them by functions to identify a process and send as well as receive messages. While this mechanism may be used to run multiple parallel processes on a single machine it can assist communications between cluster nodes.
 
-\subsection{MPI}
-Although OpenMP and OpenACC are powerful tools for parallelization on a single machine, in order to write large scale software, communications across multiple machines are necessary. One standard tool to achieve this is MPI.
-MPI offers bindings to many languages and extends such by functions to identify a process and send as well as receive messages.
+\begin{lstlisting}[caption=MPI Code Example,captionpos=b]
+#include <stdio.h>
+#include <string.h>
+#include <mpi.h>
 
-\subsection{MapReduce}
-Due to its simple programming model, which mainly consists of a \textit{Map} and a \textit{Reduce} phase it is a commonly used approach for large clusters. Its most prominent implementation is Hadoop MapReduce, which runs in combination with the Hadoop Distributed File System. It is therefore especially applicable for data intense jobs like log analysis.
+int main(int argc, char **argv){
+  char messageBuffer[64];
+  int rank, processCount;
 
-\section{CUDA}
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &processCount);
 
-CUDA is an API released by NVIDIA, which enables NVIDIA GPUs to be used for general purpose computing. As modern GPUs are comprised of hundreds or even thousands of streaming processors, data parallel algorithms can make extensive use of the CUDA infrastructure.
+  if(rank == 0){
+    for(int i = 1; i<processCount;i++){
+      sprintf(messageBuffer, "This is a message from Process 0.");
+      MPI_Send(messageBuffer, sizeof(messageBuffer), MPI_CHAR, i, 0, MPI_COMM_WORLD);
+    }
+  }else{
+    MPI_Recv(messageBuffer, sizeof(messageBuffer), MPI_CHAR, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    printf("Process %d receives: %s\n", rank, messageBuffer);
+  }
+
+  MPI_Finalize();
+  return 0;
+}
+\end{lstlisting}
+
+MPI programs can be run with a specified number of processes. Executing the above C code example with 4 processes initiates a simple communication from the first process to all other processes. The given code is executed in every process but each process identifies its own rank, which is used to define whether to send or to receive a message. Running the code may yield the following console output:
+\begin{Verbatim}[fontsize=\small]
+Process 1 receives: This is a message from Process 0.
+Process 3 receives: This is a message from Process 0.
+Process 2 receives: This is a message from Process 0.
+\end{Verbatim}
+
+\subsection*{MapReduce}
+MapReduce is a programming model introduced by Google specifically targeted at processing large amounts of data\cite{mapreduce}. Its most prominent implementation is Hadoop MapReduce, which runs in combination with the Hadoop Distributed File System (abbr. HDFS). The HDFS is mostly used to store processable files, which represent subdivisions of a large dataset, also called input splits. An input split is handled independently by a so called \textit{Map} function, which executes a given algorithm on the partial dataset and generates an intermediate result for this split. These intermediate results are then passed to a \textit{Reduce} function, which performs aggregations to yield a final result for the overall dataset. MapReduce is therefore especially applicable for data intense jobs like log analysis. In figure \ref{img:mapreduce_arch} an exemplary overview over the computational process is given for a 10 Terabyte log, which is split into 10000 smaller files of 1 Gigabyte each. Each file serves as the input for a \textit{Mapper} that executes the defined \textit{Map} function and sends its intermediate results to a single \textit{Reducer} that writes the final result back to HDFS.
+
+\begin{figure}[!htb]	
+	\includegraphics[width=0.75\textwidth]{drawings/mapreduce_arch.pdf}
+	\centering
+	\caption{MapReduce Example Architecture}
+	\label{img:mapreduce_arch}
+\end{figure}
 
 \section{OpenCL}
 \label{opencl}
-OpenCL is a compute framework that represents a direct competitor to CUDA. It was initially proposed by Apple but is currently maintained by the Khronos Group, which consists of a multitude of companies like AMD, Intel, NVIDIA and others\cite{opencl_directors}. Unlike CUDA, OpenCL is not limited to NVIDIA GPUs but supports various device types and vendors. In fact OpenCL programs may be executed on CPUs, GPUs, FPGAs and digital signal processor (abbr. DSP). Prerequisite for the execution of OpenCL code on a targeted device is the presence of an OpenCL Installable Client Driver (abbr. ICD) on its enclosing host machine. Such ICDs must conform with the specification released by the Khronos Group. As of today, various implementations of OpenCL exist by vendors like AMD, NVIDIA, Intel, Apple, ARM, Xilinx and others \cite{opencl_conform}.
+OpenCL is a compute framework to support parallel programs on heterogeneous hardware. It was initially proposed by Apple but is currently maintained by the Khronos Group, which consists of a multitude of companies like AMD, Intel, NVIDIA and others\cite{opencl_directors}. OpenCL represents a direct competitor to NVIDIA's CUDA computing platform but unlike CUDA is not limited to NVIDIA GPUs. Instead it supports various device types and vendors. In fact OpenCL programs may be executed on CPUs, GPUs, field-programmable gate arrays (abbr. FPGA) and digital signal processor (abbr. DSP). Prerequisite for the execution of OpenCL code on a targeted device is the presence of an OpenCL Installable Client Driver (abbr. ICD) on its enclosing host machine. Such ICDs must conform with the specification released by the Khronos Group. As of today, various implementations of OpenCL exist by vendors like AMD, NVIDIA, Intel, Apple, ARM, Xilinx and others \cite{opencl_conform}.
 
 The most important definitions within the OpenCL specification are the introduction of its execution model as well as the underlying memory model, which in the following are explained based on the OpenCL Specification Version 2.2 document \cite{opencl_spec}.
 
 \subsection*{Execution Model}
-OpenCL programs are executed on selected OpenCL devices. An OpenCL program consists of at least on function that is called a Kernel. A Kernel is run for each work-item, which is the smallest partial unit of a submitted task. For instance a work-item could be an element of an array that is being handled. Kernels process the work-items using so called ranges, which define the size of the overall work-item space in up to three dimensions and allow the Kernel to determine the position of the work-item being processed. Ranges also define how the work-items are subdivided in work-groups. These relations are depicted in figure \ref{img:opencl_data_model} for a two dimensional array that is divided into work-groups in both dimensions.
+OpenCL programs are executed on selected OpenCL devices. An OpenCL program consists of at least one function that is called a Kernel. A Kernel is run for each work-item, which is the smallest partial unit of a submitted task. For instance a work-item could be an element of an array that is being handled. Kernels process the work-items using so called ranges, which define the size of the overall work-item space in up to three dimensions and allow the Kernel to determine the position of the work-item being processed. Ranges also define how the work-items are subdivided in work-groups. These relations are depicted in figure \ref{img:opencl_data_model} for a two dimensional array that is divided into work-groups in both dimensions.
 
 \begin{figure}[!htb]	
 	\includegraphics[width=0.55\textwidth]{drawings/opencl_data_model.pdf}
@@ -76,9 +113,9 @@ OpenCL Kernels are written in OpenCL C, which is a superset of C99, containing a
   \item [Ruby] Ruby-OpenCL
 \end{description}
 
-The following kernel code describes the addition of two vectors, in which the elements at identical indexes of two arrays are accumulated:
+\begin{minipage}{\linewidth}
 
-\begin{lstlisting}[caption=OpenCL Vector Addition Kernel,captionpos=b]
+\begin{lstlisting}[caption=OpenCL Vector Addition Kernel,captionpos=b,label={lst:opencl_kernel}]
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 __kernel void run(__global double *a, __global double *b, __global double *c){
@@ -86,8 +123,8 @@ __kernel void run(__global double *a, __global double *b, __global double *c){
   c[i]  = a[i] + b[i];
 }
 \end{lstlisting}
-
-Line 1 enables the OpenCL extension for double-precision floating point numbers, which is necessary for running the code. In line 3 the method declaration is visible that consists of three parameters. Each parameter is a pointer to an array of doubles residing in \textit{global} memory. As the Kernel is run for every work-item, line 4 identifies the global work-item index by calling \textit{get\_global\_id}. The acquired index is used in line 5 to process the actual computation where the result of the sum of array \textit{a} and array \textit{b} at the index is written to array \textit{c}.
+\end{minipage}
+Source Code \ref{lst:opencl_kernel} presents an OpenCL Kernel that describes the addition of two vectors, in which the elements at identical indexes of two arrays are accumulated. Line 1 enables the OpenCL extension for double-precision floating point numbers, which is necessary for running the code. In line 3 the method declaration is visible that consists of three parameters. Each parameter is a pointer to an array of doubles residing in \textit{global} memory. As the Kernel is run for every work-item, line 4 identifies the global work-item index by calling \textit{get\_global\_id}. The acquired index is used in line 5 to process the actual computation where the result of the sum of array \textit{a} and array \textit{b} at the index is written to array \textit{c}.
 
 For this example to run the host code has to choose an appropriate device, initiate data transfers and perform other auxiliary tasks. The host code is omitted for clarity as with around 50 lines of code it is considerably longer than the actual kernel code. 
 
@@ -97,10 +134,17 @@ While OpenCL supports more device types and vendors it seems questionable whethe
 
 \section{Aparapi}
 \label{aparapi}
-Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL Kernels. Firstly, it contains bindings to access OpenCL functions through a Java Native Interface (abbr. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. Therefore, programmers can build classes that inherit the provided abstract Kernel class by Aparapi. The following code snippet shows such an implemented Kernel:
+Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL Kernels. Firstly, it contains bindings to access OpenCL functions through a Java Native Interface (abbr. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. An overview over the call chain is given in figure \ref{img:aparapi_call_chain}.
+
+\begin{figure}[!htb]	
+	\includegraphics[width=0.75\textwidth]{drawings/aparapi_call_chain.pdf}
+	\centering
+	\caption{Aparapi Call Chain}
+	\label{img:aparapi_call_chain}
+\end{figure}
 
 \begin{minipage}{\linewidth}
-\begin{lstlisting}[caption=Aparapi Vector Addition Kernel,captionpos=b]
+\begin{lstlisting}[caption=Aparapi Vector Addition Kernel,captionpos=b,label=lst:aparapi_kernel]
 final double[] a = new double[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 final double[] b = new double[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 final double[] c = new double[10];
@@ -120,7 +164,7 @@ for(Double result:c){
 }
 \end{lstlisting}
 \end{minipage}
-The above code reproduces the vector addition example code from section \ref{opencl} in which elements at the same index of two arrays are summed and written to a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read in order to improve performance. This is especially useful when input data does not change during computation and therefore does not have to be copied back to the host. While an original OpenCL implementation would require roundabout 50 lines of auxiliary code, Aparapi abstracts tasks like device selection and data handling when no specific control is needed. This enables developers to program algorithms considerably faster and allows beginners quick access to OpenCL features without knowledge of low level mechanisms.
+The Source Code \ref{lst:aparapi_kernel} reproduces the vector addition example code from section \ref{opencl} in which elements at the same index of two arrays are summed and written to a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define, which data should be written or read in order to improve performance. This is especially useful when input data does not change during computation and therefore does not have to be copied back to the host. While an original OpenCL implementation would require roundabout 50 lines of auxiliary code, Aparapi abstracts tasks like device selection and data handling when no specific control is needed. This enables developers to program algorithms considerably faster and allows beginners quick access to OpenCL features without knowledge of low level mechanisms.
 
 Although the code translation of Aparapi may work for many use cases, certain limitations apply to the Java code that can be handled. Information about these restrictions can be found in the documentation on GitHub \cite{aparapi_kernel_guidelines}, which is partly outdated as newer features lifted corresponding limitations. The following list represents a selection of Kernel restrictions that may affect common code patterns:
 
