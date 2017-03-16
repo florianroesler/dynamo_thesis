@@ -71,7 +71,7 @@ It is visible that the translation time of a kernel has a lower bound of ~30ms o
 	\label{img:aparapi_vs_opencl}
 \end{figure}
 
-As visible in the results in figure \ref{img:aparapi_vs_opencl}, Aparapi can reach the performance level of handcrafted OpenCL code, which for the most runs only takes 1-2\% longer to compute. This minuscule difference could be the result of communication overhead through the JNI interface. Because of the similar performance it is valid to utilize Aparapi in the envisioned framework. As a first step the connection between Aparapi and dOpenCL should be evaluated. For this cause both components are installed on a development system and tested for interoperability. It is discovered that in their standard versions both pieces of software do not work in conjunction because of several bugs or incompatible design decisions. These problems and the corresponding solutions are explained in the following part:
+As visible in the results in figure \ref{img:aparapi_vs_opencl}, Aparapi can reach the performance level of handcrafted OpenCL code, which for the measured problem sizes takes less than 2\% longer to compute. This minuscule difference could be the result of communication overhead through the JNI interface. Because of the similar performance it is valid to utilize Aparapi in the envisioned framework. As a first step the connection between Aparapi and dOpenCL should be evaluated. For this cause both components are installed on a development system and tested for interoperability. It is discovered that in their standard versions both pieces of software do not work in conjunction because of several bugs or incompatible design decisions. These problems and the corresponding solutions are explained in the following part:
 
 \begin{description}[style=nextline]
 	\item [No available devices]
@@ -108,11 +108,10 @@ With the implemented fixes described in section \ref{abstraction} Aparapi is abl
 
 \end{description}
 
-While all of the above mentioned methods are meaningful candidates, they each have negative impact either on performance or programming complexity: \textit{Naive Buffer Replication} increases total data transfer sizes, which enhances the chances of network congestion the higher the number of splits becomes. \textit{Intelligent Buffer Replication} requires an extra step for sampling memory accesses, which includes the translation of OpenCL to C code. Although \textit{Meta Functions} try to abstract efforts away from programmers they are still required to define the access patterns manually. \textit{Manual Splits} put the entire responsibility into the hands of the programmer who has to make sure that the data is split and merged back together. While it is the least automated method, it also grants full control over performance and is not dependent on split and merge algorithms that may fail for complex problems. Thus, the framework will support \textit{Manual Splits}. In order to show that such an approach is eligible in combination with Aparapi the following code example will illustrate the process of splitting the addition of two vectors into partial tasks:
+While all of the above mentioned methods are meaningful candidates, they each have negative impact either on performance or programming complexity: \textit{Naive Buffer Replication} increases total data transfer sizes, which enhances the chances of network congestion the higher the number of splits becomes. \textit{Intelligent Buffer Replication} requires an extra step for sampling memory accesses, which includes the translation of OpenCL to C code. Although \textit{Meta Functions} try to abstract efforts away from programmers they are still required to define the access patterns manually. \textit{Manual Splits} put the entire responsibility into the hands of the programmer who has to make sure that the data is split and merged back together. While it is the least automated method, it also grants full control over performance and is not dependent on split and merge algorithms that may fail for complex problems. Thus, the framework supports \textit{Manual Splits}. In order to show that such an approach is eligible in combination with Aparapi Source Code \ref{lst:split_addition} illustrates the process of splitting the addition of two vectors into partial tasks.
 
-\begin{minipage}{\linewidth}
 
-\begin{lstlisting}[caption=Partial Aparapi Vector Addition Kernel,captionpos=b]
+\begin{lstlisting}[caption=Partial Aparapi Vector Addition Kernel,captionpos=b,label=lst:split_addition]
 public class AdditionKernel extends Kernel{
   int[] a, b, result;
 
@@ -131,30 +130,30 @@ public class AdditionKernel extends Kernel{
 
 public class Addition {
   public static void main(String[] args) {
-    final int tileCount = 2;
-    int[] a = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    int[] b = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    int[] result = new int[a.length];
-
-    int tileWidth = a.length / tileCount;
-    for(int i = 0; i < tileCount; i++){
-      int[] aTile = Arrays.copyOfRange(a, i * tileWidth, (i + 1) * tileWidth);
-      int[] bTile = Arrays.copyOfRange(b, i * tileWidth, (i + 1) * tileWidth);
-
-      AdditionKernel additionKernel = new AdditionKernel(aTile, bTile);
-      additionKernel.execute(tileWidth);
-      System.arraycopy(additionKernel.result, 0, result, i * tileWidth, tileWidth);
-    }
-
-    System.out.println(Arrays.toString(result));
+    final int partialCount = 2;
+	int[] a = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	int[] b = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	int[] result = new int[a.length];
+	
+	int partialWidth = a.length / partialCount;
+	for(int i = 0; i < partialCount; i++){
+      int[] aPartial = Arrays.copyOfRange(a, i * partialWidth, (i + 1) * partialWidth);
+      int[] bPartial = Arrays.copyOfRange(b, i * partialWidth, (i + 1) * partialWidth);
+	
+	  AdditionKernel additionKernel = new AdditionKernel(aPartial, bPartial);
+      additionKernel.execute(partialWidth);
+      System.arraycopy(additionKernel.result, 0, result, i * partialWidth, partialWidth);
+	}
+	
+	System.out.println(Arrays.toString(result));
   }
 }
 
 \end{lstlisting}
-\end{minipage}
-In the example a reusable Aparapi Kernel \textit{AdditionKernel} is defined that computes the sums of the two vectors independent of the general problem size. In the class \textit{Addition} the generated input data is split into smaller parts based on the \textit{tileCount}. Then for each partial the \textit{AdditionKernel} is instantiated and executed. After the execution the individual result is copied into the overall \textit{result} array. In order to grant higher parallelization the \textit{tileCount} could be dynamically changed into a divisor of the array length. This illustrates that writing a split and merge algorithm can be intuitive and not require much code.
 
-Based on the above explanations the following execution model for Dynamic OpenCL is defined, which is depicted in \ref{img:dynamic_opencl_job}. Users define \textit{Jobs}, which are comprised of at least one \textit{Partial}, which is a modified Aparapi Kernel. Partials contain the data that is split manually. After a job is constructed it can be submitted to the \textit{Job Executor} that assigns and executes the partials among the available devices of its cluster.
+In the example a reusable Aparapi Kernel \textit{AdditionKernel} is defined that computes the sums of the two vectors independent of the general problem size. In the class \textit{Addition} the generated input data is split into smaller parts based on the \textit{partialCount}. Then for each partial the \textit{AdditionKernel} is instantiated and executed. After the execution the individual result is copied into the overall \textit{result} array. In order to grant higher parallelization the \textit{tileCount} could be dynamically changed into a divisor of the array length. This illustrates that writing a split and merge algorithm can be intuitive and not require much code.
+
+Based on the above explanations the following execution model for Dynamic OpenCL is defined, which is depicted in \ref{img:dynamic_opencl_job}. Users define \textit{Jobs}, which are comprised of at least one \textit{Partial}, which is an extended Aparapi Kernel. Partials contain the data that is split manually. After a job is constructed it can be submitted to the \textit{Job Executor} that assigns and executes the partials among the available devices of its cluster.
 
 \begin{figure}[H]
 	\includegraphics[width=0.95\textwidth]{drawings/dynamic_opencl_job.pdf}
@@ -211,9 +210,9 @@ public abstract class MachineManager {
 }
 \end{lstlisting}
 
-The above code shows the abstract class that handles bookings and releases of instances in the context of dOpenCL. In the actual implementation it includes functionalities which ensures that the booked instances are successfully booted and running the dOpenCL daemon before adding them to the cluster as well as removing them. These pieces have been deducted for the sake of readability. The actual implementation of the EC2 \textit{Machine Manager} that accesses the SDK is hidden behind the abstract class so that users only communicate with the generalized class. In order to employ another cloud provider, only the abstract methods have to be implemented that call the respective cloud API.
+The above code shows the abstract class that handles bookings and releases of instances in the context of dOpenCL. In the actual implementation it includes functionalities which ensures that the booked instances are successfully booted and running the dOpenCL daemon before adding them to the cluster as well as removing them. These pieces have been deducted for the sake of readability. The actual implementation of the \textit{EC2 Machine Manager} fills the abstract methods in which it accesses the Amazon SDK for booking and releasing machines. In order to employ another cloud provider, a class that implements the abstract methods for calling the respective cloud API has to be created.
 
-An important factor to consider when connecting a local cluster with a remote cloud is security. Remote machines should be sufficiently secured to prevent attackers from taking over machines or utilizing resources via calling the running dOpenCL daemon. By default the EC2 Ubuntu images only allow certificate based SSH, which prevents password attacks on any account. Additionally, Amazon offers the management of Security Groups that put machines behind a virtual firewall. Therefore the security group can be configured to only allow packages from the static IP range of the local cluster, which renders attacks from outside of the local network useless. Any newly booked instance will be included within the Security Group and as such automatically protected.
+An important factor to consider when connecting a local cluster with a remote cloud is security. Remote machines should be sufficiently secured to prevent attackers from taking over machines or utilizing resources via calling the running dOpenCL daemon. By default the EC2 Ubuntu images only allow certificate based SSH, which prevents password attacks on any account. Additionally, Amazon offers the management of Security Groups that put machines behind a virtual firewall. Therefore the security group can be configured to only allow packages from the static IP range of the local cluster, which renders attacks from outside of the local network useless. Any newly booked instance will be included within the Security Group and are therefore protected.
 
 \section{Scalable Performance}
 

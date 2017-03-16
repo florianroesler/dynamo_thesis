@@ -69,7 +69,7 @@ VirtualCL offers an extension, called SuperCL, which is aimed at reducing networ
 
 \subsection*{SnuCL}
 
-SnuCL represents another library aside from dOpenCL and VirtualCL that provides a mechanism to access compute devices of a cluster as if they were available locally in a single machine\cite{snucl}. Instead of simply forwarding API calls to remote machines, SnuCL heavily transforms Kernels depending on the available runtimes of a machine. For example it translates OpenCL to CUDA when only the CUDA platform is provided by the machine. Additionally, can transform OpenCL code to C code, which is then executed within a thread for each core of a CPU.
+SnuCL represents another library aside from dOpenCL and VirtualCL that provides a mechanism to access compute devices of a cluster as if they were available locally in a single machine\cite{snucl}. Instead of simply forwarding API calls to remote machines, SnuCL heavily transforms Kernels depending on the available runtimes of a machine. For example it translates OpenCL to CUDA when only the CUDA platform is provided by the machine. Additionally, it can transform OpenCL code to C, which is then executed within a thread for each core of a CPU.
 
 Furthermore, SnuCL introduces a virtual global memory, in which buffers may be shared among devices. It manages the consistency among shared buffers and attempts to minimize copy operations throughout the execution in order to save bandwidth. This is achieved by translating the OpenCL code to C, which is then used to identify whether a buffer will be written during execution. Buffers that are not written can therefore remain on a device without the requirement to be copied back to the host.
 
