@@ -20,7 +20,7 @@ void example()
 The above OpenMP example written in C presents a simple parallelized loop that prints the index of the current iteration. As multiple iterations can be executed at the same time, the printed digits do not necessarily have to be in order such as \textit{0128967354}. 
 
 \subsection*{MPI}
-Although OpenMP and OpenACC are powerful tools for parallelization on a single machine, in order to write large scale software, communications across multiple machines are necessary. One standard tool to achieve this is Message Passing Interface (abbr. MPI).
+Although OpenMP and OpenACC are powerful tools for parallelization on a single machine, in order to write large scale software, communications across multiple machines are necessary. One standard tool to achieve this is MPI.
 It offers bindings to many languages and extends them by functions to identify a process and send as well as receive messages. While this mechanism may be used to run multiple parallel processes on a single machine it can assist communications between cluster nodes.
 
 \begin{lstlisting}[caption=MPI Code Example,captionpos=b]
@@ -166,15 +166,5 @@ for(Double result:c){
 \end{minipage}
 The Source Code \ref{lst:aparapi_kernel} reproduces the vector addition example code from section \ref{opencl} in which elements at the same index of two arrays are summed and written to a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define which data should be written or read in order to improve performance. This is especially useful when input data does not change during computation and therefore does not have to be copied back to the host. While an original OpenCL implementation would require roundabout 50 lines of auxiliary code, Aparapi abstracts tasks like device selection and data handling when no specific control is needed. This enables developers to program algorithms considerably faster and allows beginners quick access to OpenCL features without knowledge of low level mechanisms.
 
-Although the code translation of Aparapi may work for many use cases, certain limitations apply to the Java code that can be handled. Information about these restrictions can be found in the documentation on GitHub \cite{aparapi_kernel_guidelines}, which is partly outdated as newer features lifted corresponding limitations. The following list represents a selection of Kernel restrictions that may affect common code patterns:
+Although the code translation of Aparapi may work for many use cases, certain limitations apply to the Java code that can be handled. Information about these restrictions can be found in the documentation on GitHub \cite{aparapi_kernel_guidelines}, which is partly outdated as newer features lifted corresponding limitations. In the current version Aparapi for example only supports the primitive data types boolean, byte, short, int, long, and float. While programmers may also employ object orientation, Aparapi can only translate classes whose attributes are again primitives. Also such classes must allow access to the attributes through getter and setter functions. Additionally, not all control-flow features of Java are supported by Aparapi. Indeed it can only handle conditionals and counting \textit{for}-loops. Thus, \textit{switch}, \textit{break}, \textit{continue}, enhanced \textit{for}-loops and recursion are not allowed.
 
-\begin{description}[style=nextline]
-  \item [Data Types]
-  The supported primitive data types are boolean, byte, short, int, long, and float. While Aparapi supports Java objects, it can only translate classes whose attributes are again primitives. Also such classes should allow access to the attributes through getter and setter functions.
-
-  \item [Control Flow]
-  Aparapi only supports conditionals and counting for-loops. Switch, break, continue, enhanced for-loops and recursion are not allowed.
-
-  \item [Specific Device Choice]
-  Although it can be specified on which device type a kernel shall run, it is not possible to select a specific device for execution. For example, on a machine with four different GPUs one could not decide through Aparapi, which of the four GPUs should be used.
-\end{description}
