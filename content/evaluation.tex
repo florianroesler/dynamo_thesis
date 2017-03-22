@@ -74,7 +74,7 @@ Therefore in this scenario a single machine acts as the management node that rec
 	\label{img:fully_assisted_parallel_matrix}
 \end{figure}
 
-The benchmark results for the matrix multiplication in figure \ref{img:fully_assisted_parallel_matrix} display that the performance gains for the given cluster configuration are not on par with the actual available performance. The second remote machine can still yield speedups to around x1.5 for bigger problem sizes while the second machine only raises that to around x1.7. From there on every further cluster expansion does only yield minimal improvements to a maximum of x1.75 and in the case of the last machine even produces minor slowdowns. This behavior is the result of the 1 GBit/s connection being such a narrow bottleneck that can not serve the participating machines adequately and thus makes their the CPUs remain idle for longer timespans.  
+The benchmark results for the matrix multiplication in figure \ref{img:fully_assisted_parallel_matrix} display that the performance gains for the given cluster configuration are not on par with the actual available performance. The second remote machine can still yield speedups to around x1.5 for bigger problem sizes while the second machine only raises that to around x1.7. From there on every further cluster expansion does only yield minimal improvements to a maximum of x1.75 and in the case of the last machine even produces minor slowdowns. This behavior is the result of the 1 GBit/s connection being such a narrow bottleneck that can not serve the participating machines adequately and thus keeps their CPUs idle for longer timespans.  
 
 \begin{figure}[H]
 	
@@ -256,7 +256,7 @@ In figure \ref{img:ec2_cpu_mandelbrot} the performance of the cluster for the Ma
 	\label{img:ec2_cpu_full_benchmark}
 \end{figure}
 
-Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the CPU cluster for the job suite benchmark. It can be inferred that the performance gains of a second instance are substantial at a x1.8 speedup even though the benchmark contains several data heavy Kernels. Indeed employing three instances yield another boost in computational power, providing a x2.3 speedup. Still it is visible that the gains of the third instance do not match those of the second as more machines have to compete for network resources.
+Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the CPU cluster for the job suite benchmark. It can be inferred that the performance gains of a second instance are substantial at a x1.8 speedup even though the benchmark contains several data heavy jobs. Indeed employing three instances yields another boost in computational power, providing a x2.3 speedup. Still it is visible that the gains of the third instance do not match those of the second as more machines have to compete for network resources.
 
 \subsection{GPU Cluster}
 \subsubsection*{Single Job Performance}
