@@ -25,7 +25,7 @@ In order to simulate a shared cluster environment it becomes necessary to evalua
 	\begin{adjustbox}{width=0.95\textwidth}
 		\small
 		\begin{tabular}{l | l | l | l | l}
-			~ & \textbf{Abbreviation}						& \textbf{Computational Effort}		& \textbf{Iterations}	& \textbf{Kernels per Iteration} \\
+			~ & \textbf{Abbreviation}						& \textbf{Problem Size}		& \textbf{Iterations}	& \textbf{Kernels per Iteration} \\
 			\hline
 			\textbf{Matrix Multiplication 1}	& MM1  	& 8000x8000  								& 1 	& 5 \\
 			\textbf{Matrix Multiplication 2} 	& MM2	& 6000x6000  								& 1		& 5 \\
@@ -58,11 +58,11 @@ For the benchmark the performance indicator to measure is the total time to fini
 
 \section{Local Distribution}
 \label{local_distribution}
+A possible use case of Dynamic OpenCL is the outsourcing of entire computations to remote machines without allowing participation of the host machine itself. Such setup is hereby defined as a \textit{Fully Assisted Computation}. Executing a fully assisted computation might be meaningful due to severe differences in hardware capabilities between the host and the remote machines. For example when a low powered ARM machine offloads workloads to a high performance server, it is likely to be beneficial to not include the ARM machine in the computation as it may slow down the overall process.
 
+The second conceived cluster setup is defined as a \textit{Partially Assisted Computation}. In it the local cluster grants computational support to a machine that needs to finish a workload faster than it can achieve on its own. This is especially useful when certain deadlines have to be met but a single machine can not match the performance requirements.
 \subsection{Fully Assisted Computation}
-A possible use case of Dynamic OpenCL is the outsourcing of entire computations to remote machines without allowing participation of the host machine itself. This could be due to severe differences in hardware capabilities between the host and the remote machines. For example when a low powered ARM machine offloads workloads to a high performance server, it is likely to be beneficial to not include the ARM machine in the computation as it may slow down the overall process.
-
-Therefore in this scenario a single machine acts as the management node that receives the given jobs. In the first round it is connected to a single machine of Class B, which acts as the execution node. The measured times of the benchmarks for the single execution node represents the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same class one by one. It must be noted that the central management node is of Class A and therefore only provides 1 Gbit/s Ethernet.
+In this scenario that covers the fully assisted setup a single machine acts as the management node that receives the given jobs. In the first round it is connected to a single machine of Class B, which acts as the execution node. The measured times of the benchmarks for the single execution node represents the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same class one by one. It must be noted that the central management node is of Class A and therefore only provides 1 Gbit/s Ethernet.
 
 \subsubsection*{Single Job Performance}
 
@@ -100,9 +100,7 @@ The job suite benchmark, which can be seen in figure \ref{img:local_fully_assist
 
 \subsection{Partly Assisted Computation}
 
-Another likely use case of Dynamic OpenCL in a local cluster is the computational support of a host machine that needs to finish a workload faster than it can achieve on its own. This is especially useful when certain deadlines have to be met but a single machine can not match the performance requirements.
-
-In order to simulate this use case the initial cluster setup is comprised of a single machine of Class B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then in each benchmark iteration a remote node of Class B is added. Therefore all participating machines employ 10 Gbit/s interconnects with the central node having the potential bottleneck as it has to serve multiple equal connections. The setup also concludes that not all Kernels have to take equal within the network as some might be computed directly on the central node.
+In order to simulate the use case of the partly assisted computation, the initial cluster setup is comprised of a single machine of Class B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then in each benchmark iteration a remote node of Class B is added. Therefore all participating machines employ 10 Gbit/s interconnects with the central node having the potential bottleneck as it has to serve multiple equal connections. The setup also concludes that not all Kernels have to take equal within the network as some might be computed directly on the central node.
 
 \subsubsection*{Single Job Performance}
 \label{single_job_performance}

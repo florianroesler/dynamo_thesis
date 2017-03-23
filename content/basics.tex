@@ -1,4 +1,6 @@
-\chapter{Basics}
+\chapter{Background}
+\label{background}
+In this chapter the technologies that form the foundation of Dynamic OpenCL are explained. Additionally, several competing solutions are explained for further insight into the process of deciding for or against a specific solutions.
 
 \section{Basic Distribution Methods}
 \label{distribution_basics}
@@ -6,7 +8,7 @@
 \subsection*{OpenMP and OpenACC}
 OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which indicate the execution environment how to parallelize the program \cite{openmp_spec}. The resulting code can then be run in multiple threads that can be scheduled on many CPU cores in parallel. OpenACC offers similar functionality as OpenMP but aims at offloading parallel computations to attached accelerators like GPUs \cite{openacc_spec}. Thus if offers additional keywords specifically for assigning parallel computations to available accelerators.
 
-\begin{lstlisting}[caption=OpenMP Code Example,captionpos=b]
+\begin{lstlisting}[caption=OpenMP Code Example in C,captionpos=b,label=lst:openmp_code]
 void example()
 {
   int i;
@@ -17,13 +19,13 @@ void example()
 }
 \end{lstlisting}
 
-The above OpenMP example written in C presents a simple parallelized loop that prints the index of the current iteration. As multiple iterations can be executed at the same time, the printed digits do not necessarily have to be in order such as \textit{0128967354}. 
+The OpenMP example in Source Code \ref{lst:openmp_code} presents a simple parallelized loop that prints the index of the current iteration. As multiple iterations can be executed at the same time, the printed digits do not necessarily have to be in order such as \textit{0128967354}. 
 
 \subsection*{MPI}
 Although OpenMP and OpenACC are powerful tools for parallelization on a single machine, in order to write large scale software, communications across multiple machines are necessary. One standard tool to achieve this is MPI.
-It offers bindings to many languages and extends them by functions to identify a process and send as well as receive messages. While this mechanism may be used to run multiple parallel processes on a single machine it can assist communications between cluster nodes.
+It offers bindings to many languages and extends them by functions to identify a process and send as well as receive messages\cite{mpi_spec}. While this mechanism may be used to run multiple parallel processes on a single machine it can assist communications between cluster nodes.
 
-\begin{lstlisting}[caption=MPI Code Example,captionpos=b]
+\begin{lstlisting}[caption=MPI Code Example in C,captionpos=b,label=lst:mpi_code]
 #include <stdio.h>
 #include <string.h>
 #include <mpi.h>
@@ -51,7 +53,7 @@ int main(int argc, char **argv){
 }
 \end{lstlisting}
 
-MPI programs can be run with a specified number of processes. Executing the above C code example with 4 processes initiates a simple communication from the first process to all other processes. The given code is executed in every process but each process identifies its own rank, which is used to define whether to send or to receive a message. Running the code may yield the following console output:
+MPI programs can be run with a specified number of processes. Executing Source Code \ref{lst:mpi_code} with 4 processes initiates a simple communication from the first process to all other processes. The given code is executed in every process but each process identifies its own rank, which is used to define whether to send or to receive a message. Running the code may yield the following console output:
 \begin{Verbatim}[fontsize=\small]
 Process 1 receives: This is a message from Process 0.
 Process 3 receives: This is a message from Process 0.

@@ -1,5 +1,6 @@
 \chapter{Related Work}
 \label{related}
+In this chapter several related research papers are explained that provide solutions to distribute computations for parallel execution. The first section covers OpenCL based approaches for parallelizing workloads on a single machine. The second section exhibits cluster distribution approaches based on OpenCL and CUDA.
 
 \section{OpenCL Single Machine Distribution}
 
@@ -13,7 +14,7 @@ SOCL is an OpenCL based framework by \citeauthor{socl} that offers the following
 
 SOCL acts as a middleware with its own OpenCL ICD utilizing other installed ICDs on a machine. Thus, it is able to implement functionalities such as shared command queues for multiple devices by hiding the divided command queues for each device. Through this method, load balancing techniques can also be applied.
 
-One of the main features is the automatic granularity adaption of Kernels, which allows the appropriate partitioning of tasks according to respective performance capabilities of devices ina heterogeneous cluster. To enable the adaption programmers have to supply the framework with a function that indicates how to divide the kernel with its corresponding data.
+One of the main features is the automatic granularity adaption of Kernels, which allows the appropriate partitioning of tasks according to respective performance capabilities of devices in a heterogeneous cluster. To enable the adaption programmers have to supply the framework with a function that indicates how to divide the kernel with its corresponding data.
 
 \subsection*{Static multi-device load balancing for OpenCL}
 \citeauthor{delalama_2012} published an approach for executing a single kernel on multiple devices as well as a load balancing mechanism based on each device's computing power\cite{delalama_2012}.

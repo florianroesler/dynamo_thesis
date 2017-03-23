@@ -1,7 +1,5 @@
 \chapter{Introduction}
-
-\section{Motivation}
-\label{motivation}
+\label{intro}
 At the current state of technology, computers with multiple compute processing units (abbr. CPU) cores are common and even small devices like smartphones are usually manufactured with a multi-core architecture. Programs that want to harness the full potential of a multi-core computer have to be constructed accordingly.
 
 Additionally, certain use cases require more computational power than a single machine can provide. Therefore it is mandatory to connect multiple machines to collectively solve a problem. For example researchers recently created a method to break a widely used cryptographic hash function that requires resources equivalent to more than 6500 CPU years to compute \cite{shattered}. A single machine at the current level of technology would therefore require too long in order to deliver the desired results. At the same time certain physical factors are limiting further quick advancements concerning CPU speeds \cite{end_of_moores_law}\cite{end_of_silicon} so that many problems will still require multiple machines in the future for time efficient computations.
@@ -14,9 +12,9 @@ Ultimately, the combination of both levels of parallelization may lead to additi
 
 While the creation of distributed algorithms implicates various problems on its own, running these programs in a cost efficient manner represents another elaborate task. Clusters dedicated to running computations in a shared environment should have as little underutilization as possible in order to minimize costs. Therefore the dynamic adaption of resources to the actual performance requirements is a challenge with significant monetary benefits. As a result, cloud services like Amazon Elastic Compute Cloud (abbr. EC2) have seen a steady increase in revenue due to their flexible billing options that allow booking resources for short amounts of time\cite{gartner_2017}. Still, a pure cloud approach may introduce several disadvantages like higher costs or reduced performance due to geographical distances between the user and the utilized resources. Accordingly, a hybrid approach appears beneficial, providing a steady baseline of performance with local hardware. In the case of computational peaks additional resources might be booked from an external provider, which allows for lower costs and better quality of service during times with high resource demands.
 
-\section{Goals}
+\section*{Research Goals}
 \label{goals}
-While there exists a multitude of solutions to solve the problems mentioned in \ref{motivation}, many of them only cover partial problems. This research aims at providing a framework to programmers that solves all the given problems by reusing existing solutions. Therefore the goal is to meaningfully combine present partial software solutions and add individual functionality where necessary. Thus, the following requirements are defined in order to streamline the development:
+While there exists a multitude of solutions to solve the previously mentioned problems, many of them only cover partial problems. This research aims at providing a framework to programmers that solves all the given problems by meaningfully reusing existing software. Therefore the general goal is to combine present partial solutions and add individual functionality where necessary. Thus, the following research goals are defined in order to streamline the development:
 
 \begin{description}[style=nextline]
     \item [Heterogeneity]
@@ -38,3 +36,9 @@ While there exists a multitude of solutions to solve the problems mentioned in \
     Aside from various hardware that workloads can be optimized for, running programs on a hybrid cloud adds the issue of networking distances between the local cluster and the external cloud. Thus, certain tasks may see performance improvements when run locally instead of being initially sent to external resources. It is desirable to take these factors into account and consider network distances and bottlenecks during scheduling decisions.
 
 \end{description}
+
+
+\section*{Thesis Structure}
+\label{structure}
+
+This research is divided into 
