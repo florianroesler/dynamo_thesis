@@ -17,14 +17,14 @@ For all recorded benchmarks multiple samples are taken. As most workloads are te
 
 \section{Cluster Composition}
 \label{cluster_composition}
-Throughout the research various benchmarks are presented to highlight caveats and performance differences of the showcased solutions. For this reason a standard set of hardware shall be used that remains constant across various benchmarks. The following table displays the machine classes that are utilized throughout the work:
+Throughout the research various benchmarks are presented to highlight caveats and performance differences of the showcased solutions. For this reason a standard set of hardware shall be used that remains constant across various benchmarks. The following table displays the machine types that are utilized throughout the work:
 
 \begin{table}[htb]
 	\centering
 	\begin{adjustbox}{width=0.7\textwidth}
 		\small
 		\begin{tabular}{l | l | l | l}
-			~                     & Class A                  	& Class B                  \\
+			~                     & Type A                  	& Type B                  \\
 			\hline
 			CPU                   &  4x Intel Xeon CPU E7-8890 v3 	& Intel Xeon CPU E3-1284L v4 \\
 			Logical Cores         &  144 	& 8 \\
@@ -39,14 +39,14 @@ Throughout the research various benchmarks are presented to highlight caveats an
 	\label{table:cluster_setup_1}
 \end{table}
 
-All of the machines belonging to the above classes are installed in the same local network and connected via the specified interconnects. In order to retrieve empirical facts about the performance depending on the network interconnection, the real network performance of the machines has to be measured. The results are displayed in table \ref{table:cluster_interconnect_benchmarks}. It can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies.
+All of the machines belonging to the above types are installed in the same local network and connected via the specified interconnects. In order to retrieve empirical facts about the performance depending on the network interconnection, the real network performance of the machines has to be measured. The results are displayed in table \ref{table:cluster_interconnect_benchmarks}. It can be inferred that both interconnects work close to their optimal performance concerning throughput and offer low latencies.
 
 \begin{table}[!htb]
 	\centering
 	\begin{adjustbox}{width=0.5\textwidth}
 		\small
 		\begin{tabular}{l | l | l}
-			~                     & Class A                 			& Class B                  \\
+			~                     & Type A                 			& Type B                  \\
 			\hline
 			iperf3                & 941.31 Mbit/s ($\sigma = 0.95$) 	& 9.409 Gbit/s ($\sigma = 0.051$) \\
 			ping                  & 0.186 ms ($\sigma = 0.022$)  		& 0.14 ms ($\sigma = 0.012$)  \\
@@ -57,7 +57,7 @@ All of the machines belonging to the above classes are installed in the same loc
 	\label{table:cluster_interconnect_benchmarks}
 \end{table}
 
-Some of the benchmarks employ cloud instances provided by Amazon's EC2. Customers may choose machines from a range of instance types to fit their specific needs. For the test cases in this research two computational high performance types are chosen, one CPU type and one GPU type. The following table shows the details for the respective instance types:
+Some of the benchmarks employ cloud instances provided by Amazon's EC2. Customers may choose machines from a range of instance types to fit their specific needs. For the test cases in this research two computational high performance types are chosen, one CPU type and one GPU type. Table \ref{table:cluster_setup_ec2} shows the details for the respective instance types.
 
 \begin{table}[!htb]
 	\centering

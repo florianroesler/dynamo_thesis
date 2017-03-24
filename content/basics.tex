@@ -61,7 +61,7 @@ Process 2 receives: This is a message from Process 0.
 \end{Verbatim}
 
 \subsection*{MapReduce}
-MapReduce is a programming model introduced by Google specifically targeted at processing large amounts of data\cite{mapreduce}. Its most prominent implementation is Hadoop MapReduce, which runs in combination with the Hadoop Distributed File System (abbr. HDFS). The HDFS is mostly used to store processable files, which represent subdivisions of a large dataset, also called input splits. An input split is handled independently by a so called \textit{Map} function, which executes a given algorithm on the partial dataset and generates an intermediate result for this split. These intermediate results are then passed to a \textit{Reduce} function, which performs aggregations to yield a final result for the overall dataset. MapReduce is therefore especially applicable for data intense jobs like log analysis. In figure \ref{img:mapreduce_arch} an exemplary overview over the computational process is given for a 10 Terabyte log, which is split into 10000 smaller files of 1 Gigabyte each. Each file serves as the input for a \textit{Mapper} process that executes the defined \textit{Map} function and sends its intermediate results to a single \textit{Reducer} that writes the final result back to HDFS.
+MapReduce is a programming model introduced by Google specifically targeted at processing large amounts of data\cite{mapreduce}. Its most prominent implementation is Hadoop MapReduce, which runs in combination with the Hadoop Distributed File System (abbr. HDFS)\cite{hadoop_mapreduce}. The HDFS is mostly used to store processable files, which represent subdivisions of a large dataset, also called input splits. An input split is handled independently by a so called \textit{Map} function, which executes a given algorithm on the partial dataset and generates an intermediate result for this split. These intermediate results are then passed to a \textit{Reduce} function, which performs aggregations to yield a final result for the overall dataset. MapReduce is therefore especially applicable for data intense jobs like log analysis. In figure \ref{img:mapreduce_arch} an exemplary overview over the computational process is given for a 10 Terabyte log, which is split into 10000 smaller files of 1 Gigabyte each. Each file serves as the input for a \textit{Mapper} process that executes the defined \textit{Map} function and sends its intermediate results to a single \textit{Reducer} that writes the final result back to HDFS.
 
 \begin{figure}[!htb]	
 	\includegraphics[width=0.75\textwidth]{drawings/mapreduce_arch.pdf}
@@ -82,7 +82,7 @@ OpenCL programs are executed on selected OpenCL devices. An OpenCL program consi
 \begin{figure}[!htb]	
 	\includegraphics[width=0.55\textwidth]{drawings/opencl_data_model.pdf}
 	\centering
-	\caption{OpenCL Data Model}
+	\caption{OpenCL Data Model (adapted from Figure 3-3 in \cite{opencl_spec})}
 	\label{img:opencl_data_model}
 \end{figure}
 
@@ -106,14 +106,27 @@ All of the available memory levels have different sizes, depending on the utiliz
 
 \subsection*{Kernels}
 
-OpenCL Kernels are written in OpenCL C, which is a superset of C99, containing additional keywords that are related to memory access and synchronization. Kernels have to be started from so called host code, which runs on the machine that contains the targeted devices. The host code is usually written in C or C++ as the standard offers APIs for these languages. Still, third parties offer bindings for other languages. The following list contains some available language bindings:
+OpenCL Kernels are written in OpenCL C, which is a superset of C99, containing additional keywords that are related to memory access and synchronization. Kernels have to be started from so called host code, which runs on the machine that contains the targeted devices. The host code is usually written in C or C++ as the standard offers APIs for these languages. Still, third parties offer bindings for other languages. Table \ref{table:opencl_language_bindings} contains some available language bindings.
 
-\begin{description}[align=left,labelwidth=1.5cm]
-  \item [Java] JOCL, Aparapi
-  \item [.NET] OpenCL.NET, Cloo
-  \item [Python] PyOpenCL, PyCL
-  \item [Ruby] Ruby-OpenCL
-\end{description}
+\begin{table}[htb]
+	\centering
+	\begin{adjustbox}{width=0.3\textwidth}
+		\small
+		\begin{tabular}{l | l}
+			\textbf{Language}	& \textbf{Bindings}   \\
+			\hline
+			Java        &  JOCL, Aparapi\\
+			.NET        &  OpenCL.NET, Cloo\\
+			Python      &  PyOpenCL, PyCL\\
+			Ruby	    &  Ruby-OpenCL\\
+
+
+		\end{tabular}
+	\end{adjustbox}
+	
+	\caption{OpenCl Language Bindings}
+	\label{table:opencl_language_bindings}
+\end{table}
 
 \begin{minipage}{\linewidth}
 
@@ -136,7 +149,7 @@ While OpenCL supports more device types and vendors it seems questionable whethe
 
 \section{Aparapi}
 \label{aparapi}
-Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL Kernels. Firstly, it contains bindings to access OpenCL functions through a Java Native Interface (abbr. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. An overview over the call chain is given in figure \ref{img:aparapi_call_chain}.
+Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL Kernels\cite{aparapi}. Firstly, it contains bindings to access OpenCL functions through a Java Native Interface (abbr. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. An overview over the call chain is given in figure \ref{img:aparapi_call_chain}.
 
 \begin{figure}[!htb]	
 	\includegraphics[width=0.75\textwidth]{drawings/aparapi_call_chain.pdf}

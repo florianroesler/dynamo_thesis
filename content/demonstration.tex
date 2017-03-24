@@ -1,5 +1,5 @@
 \chapter{Demonstration}
-
+\label{demonstration}
 In the previous chapters Dynamic OpenCL was used as a library that was included for single jobs or a predetermined amount of mixed workloads. As such it only acted on behalf of the calling code and was never used in a truly shared environment where multiple users could submit their respective workloads. Therefore this chapter will showcase a developed software that allows users to compute jobs through a web interface with the option to adjust the computational capabilities on the fly. For this the solution is connected to the EC2 and can therefore operate a hybrid cloud. In this use case users can not submit their own programs but can choose from a variety of already implemented algorithms that can process supplied input. For instance users can provide data for two matrices, which shall be multiplied, although the executing algorithm is already given by the system.
 
 \section{Architecture}

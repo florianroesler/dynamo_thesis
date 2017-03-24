@@ -1,5 +1,5 @@
 \chapter{Evaluation}
-
+\label{evaluation}
 In section \ref{distribution} and \ref{abstraction} it was shown that dOpenCL and Aparapi deliver satisfying performance when used on their own. Combining both libraries within Dynamic OpenCL demands proof whether the overall solution can still bring noticeable benefits to cluster computations.
 
 For a meaningful evaluation different cluster setups based on various scenarios are employed. Those include local clusters, hybrid clusters as well as pure cloud clusters. The employed machine types and workloads are defined in chapter \ref{benchmarking_methodology}.
@@ -42,7 +42,7 @@ In order to simulate a shared cluster environment it becomes necessary to evalua
 
 The set of workloads thus comprises a mix of iterative and non-iterative jobs. While the iterative jobs have a fixed number of iterations and are not split per round, non-iterative jobs are split into 5 parts to enable parallelization. Although some jobs employ the same algorithm, the problem sizes are varied to create a more heterogeneous set. The implications of the problem sizes and splits for each job are explained in section \ref{workload_explanation}.
 
-In order to prove the heterogeneity of the supplied workloads in terms of computational complexity and data transfer properties, analytical test runs are executed on a local machine of class B that measure the execution time per Kernel and the transfered data sizes. The following figure display the results of running the suite five times:
+In order to prove the heterogeneity of the supplied workloads in terms of computational complexity and data transfer properties, analytical test runs are executed on a local machine of type B that measure the execution time per Kernel and the transfered data sizes. The following figure display the results of running the suite five times:
 
 \begin{figure}[H]
 	
@@ -62,7 +62,7 @@ A possible use case of Dynamic OpenCL is the outsourcing of entire computations 
 
 The second conceived cluster setup is defined as a \textit{Partially Assisted Computation}. In it the local cluster grants computational support to a machine that needs to finish a workload faster than it can achieve on its own. This is especially useful when certain deadlines have to be met but a single machine can not match the performance requirements.
 \subsection{Fully Assisted Computation}
-In this scenario that covers the fully assisted setup a single machine acts as the management node that receives the given jobs. In the first round it is connected to a single machine of Class B, which acts as the execution node. The measured times of the benchmarks for the single execution node represents the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same class one by one. It must be noted that the central management node is of Class A and therefore only provides 1 Gbit/s Ethernet.
+In this scenario that covers the fully assisted setup a single machine acts as the management node that receives the given jobs. In the first round it is connected to a single machine of type B, which acts as the execution node. The measured times of the benchmarks for the single execution node represents the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same type one by one. It must be noted that the central management node is of type A and therefore only provides 1 Gbit/s Ethernet.
 
 \subsubsection*{Single Job Performance}
 
@@ -100,7 +100,7 @@ The job suite benchmark, which can be seen in figure \ref{img:local_fully_assist
 
 \subsection{Partly Assisted Computation}
 
-In order to simulate the use case of the partly assisted computation, the initial cluster setup is comprised of a single machine of Class B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then in each benchmark iteration a remote node of Class B is added. Therefore all participating machines employ 10 Gbit/s interconnects with the central node having the potential bottleneck as it has to serve multiple equal connections. The setup also concludes that not all Kernels have to take equal within the network as some might be computed directly on the central node.
+In order to simulate the use case of the partly assisted computation, the initial cluster setup is comprised of a single machine of type B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then in each benchmark iteration a remote node of type B is added. Therefore all participating machines employ 10 Gbit/s interconnects with the central node having the potential bottleneck as it has to serve multiple equal connections. The setup also concludes that not all Kernels have to take equal within the network as some might be computed directly on the central node.
 
 \subsubsection*{Single Job Performance}
 \label{single_job_performance}
@@ -142,7 +142,7 @@ The results in figure \ref{img:local_benchmark_results} indicate that employing 
 
 \section{Hybrid Distribution}
 
-After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case could be that the local machines can not provide sufficient performance to match the current requirements. Then employing remote cloud resources can be a meaningful option to gain additional performance for short periods of time. For this, the cluster initially holds a single local machines of Class B. It serves as a management node as well as an execution node. Its performance in the benchmarks is used as the baseline for comparisons. Then additional cloud resources are booked from the EC2 and added to the cluster. For the cloud resources the high performance instance type c4.8xlarge is chosen, which is described in \ref{cluster_composition}.
+After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case could be that the local machines can not provide sufficient performance to match the current requirements. Then employing remote cloud resources can be a meaningful option to gain additional performance for short periods of time. For this, the cluster initially holds a single local machines of type B. It serves as a management node as well as an execution node. Its performance in the benchmarks is used as the baseline for comparisons. Then additional cloud resources are booked from the EC2 and added to the cluster. For the cloud resources the high performance instance type c4.8xlarge is chosen, which is described in \ref{cluster_composition}.
 
 While 10 Gbit/s interconnects is proven to be a potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster is set in Potsdam and should therefore be connected to the geographically closest region that is available on the EC2 cloud, which is in Frankfurt. As an indicator the interconnection speed between the two locations is measured by using iperf3 and ping from the local machine to a cloud machine over a minute. These results can then be compared to the measured metrics from within the EC2, which were presented in \ref{cluster_composition}. Although local EC2 bandwidths and latencies can reach promising values of 9.44 Gbit/s and 0.158 ms, accessing the same instances from a network outside the cloud can only yield 169.26 Mbit/s ($\sigma = 11.93$) and 18.9 ms ($\sigma = 0.17$). A reason for the low remote performance numbers could be bottlenecks within the local network that reduce the bandwidth significantly. In order to investigate this theory three machines of type c4.8xlarge are started. Then a single local machine launches iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in figure \ref{img:EC2 Parallel Network Performance}.
 
@@ -200,7 +200,7 @@ In order to optimize the assignment of data intense jobs to the appropriate devi
 
 Figure \ref{img:hybrid_benchmark_results_network_aware} shows that the new scheduler introduces noticeable benefits compared to the historical performance based approach. While a single c4.8xlarge instance improves the system performance by x1.42, adding another one leads to a x1.83 increase. Compared to x1.28 and x1.55 respectively for the performance based scheduler this depicts a significant improvement even though the new mechanism is basic. When a third c4.8xlarge machine is introduced to the cluster no further speedup can be achieved. This can be reasoned by a too low number of jobs with small data transfers within the job suite to match the speed of the three cloud instances.
 
-In order to prove that Dynamic OpenCL can deal with a multitude of different small data jobs in parallel a second job suite is specified. For this six Mandelbrot set and four N-body computations of different sizes are used that have average Kernel runtimes between 360 milliseconds and 8.5 seconds on a machine of Class B. The data sizes per Kernel are in the range between 0.75 megabytes and 7 megabytes. Figure \ref{img:low_data_benchmark_statistics} shows the average runtimes on the Class B machine and data transfer sizes per Kernel.
+In order to prove that Dynamic OpenCL can deal with a multitude of different small data jobs in parallel a second job suite is specified. For this six Mandelbrot set and four N-body computations of different sizes are used that have average Kernel runtimes between 360 milliseconds and 8.5 seconds on a machine of type B. The data sizes per Kernel are in the range between 0.75 megabytes and 7 megabytes. Figure \ref{img:low_data_benchmark_statistics} shows the average runtimes on the type B machine and data transfer sizes per Kernel.
 
 \begin{figure}[H]	
 	\includegraphics[width=1.0\textwidth]{images/lowdata_benchmark_statistics.pdf}
