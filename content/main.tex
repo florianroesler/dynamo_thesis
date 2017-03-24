@@ -1,6 +1,6 @@
 \chapter{Dynamic OpenCL}
 \label{main}
-In this chapter the conceived and implemented framework, called Dynamic OpenCL, is explained. Section \ref{distribution} discusses the options for the underlying distribution technologies, including benchmarks to prove the feasibility of the final choice. In the following sections the contributions to the framework itself as well as to existing software solutions are showcased.
+In this chapter the conceived and implemented framework, called Dynamic OpenCL, is explained. Section \ref{distribution} discusses the options for the underlying distribution technologies, including benchmarks to prove the feasibility of the final choice. In the following sections the contributions to the framework itself as well as to existing software solutions are portrayed. The resulting framework code as well as modified dependencies can be found by accessing the repository links given in section \ref{appendix:links} of the appendix.
 
 \section{Distribution Approach}
 \label{distribution}
@@ -282,7 +282,7 @@ In order to offer algorithms on the second tier valuable data, several analytica
 	\item[Historical Data Transfer]
 	While knowing the exact amount of transferable data beforehand in the context of explicit memory management requires extensive code analysis, retaining these values in the aftermath of a Kernel execution is feasible. For this cause the memory management calls of Aparapi are modified to accumulate the sizes of the corresponding data structures in a Kernel attribute. With this functionality the total amount of transferred data is available after a Kernel has been executed. Then the attribute can be utilized by schedulers to conclude decisions for future Kernels of the same job.
 	\item[Performance Cache]
-	Dynamic OpenCL implements a mechanism to retain execution times of Kernels for every device it was run on. The observed timespan reaches from the deployment of the Kernel from its host code until the end of execution, thus including network transfers. Therefore the measurement takes into account different locations of the devices within the network. This means that a cloud device should yield slower execution times than an identical local device due to the data transfer penalties. With the resulting data, schedulers can make decisions either based on individual devices or even draw conclusions for devices of the same type.
+	Dynamic OpenCL implements a mechanism to retain execution times of Kernels for every device they are run on. The observed timespan reaches from the deployment of the Kernel from its host code until the end of execution, thus including network transfers. Therefore the measurement takes into account different locations of the devices within the network. This means that a cloud device should yield slower execution times than an identical local device due to the data transfer penalties. With the resulting data, schedulers can come to decisions based on individual devices or even draw conclusions for devices of the same model.
 \end{description}
 
 In the current version of Dynamic OpenCL the most basic device scheduler available is the \textit{Device Preference Scheduler}, which only considers the respective device preference flag attached to a partial without any further performance considerations.
