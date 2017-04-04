@@ -13,7 +13,7 @@ In most test cases the available network speed plays a crucial role to performan
 
 Dynamic OpenCL is written in Java, which means that most benchmarks will employ the JVM for parts of the application. Measuring performance for algorithms that run in the JVM usually requires extended control over some non-deterministic features, namely just-in-time compilation and garbage collection\cite{rigorous_java}. For Dynamic OpenCL the JVM is only used for management code while the actual computations are executed in OpenCL. Therefore these non-deterministic effects are neglected as the Java code only takes up small fractions of the computational capabilities of a machine.
 
-For all recorded benchmarks multiple samples are taken. As most workloads are tested in various problem sizes, at least five measurements are taken per size. For short running single test cases at least 30 samples are taken. All results are provided including the arithmetic mean with corresponding standard deviation. In the case of multiple sequential executions of the same workload an initial warm up run is executed that is not recorded in the results. Instead it serves to initialize certain system components that would otherwise skew the run time of the first execution.
+For all recorded benchmarks multiple samples are taken. As most workloads are tested in various problem sizes, at least five measurements are taken per size. For short running single test cases at least 30 samples are taken. All results are provided including the arithmetic mean with corresponding standard deviation. In the case of multiple sequential executions of the same workload an initial warm up run is executed that is not recorded in the results. Instead it serves to initialize certain system components that would otherwise skew the runtime of the first execution.
 
 \section{Cluster Composition}
 \label{cluster_composition}
@@ -34,7 +34,7 @@ Throughout the research various benchmarks are presented to highlight caveats an
 			OpenCL Driver Version &  1.2.0.10002                   & 1.2.0.25                   \\
 		\end{tabular}
 	\end{adjustbox}
-	
+
 	\caption{Cluster Composition}
 	\label{table:cluster_setup_1}
 \end{table}
@@ -52,7 +52,7 @@ All of the machines belonging to the above types are installed in the same local
 			ping                  & 0.186 ms ($\sigma = 0.022$)  		& 0.14 ms ($\sigma = 0.012$)  \\
 		\end{tabular}
 	\end{adjustbox}
-	
+
 	\caption{Cluster Network Benchmarks}
 	\label{table:cluster_interconnect_benchmarks}
 \end{table}
@@ -75,7 +75,7 @@ Some of the benchmarks employ cloud instances provided by Amazon's EC2. Customer
 			OpenCL Driver Version &  1.2.0.25                   & 1.2 CUDA 367.57        \\
 		\end{tabular}
 	\end{adjustbox}
-	
+
 	\caption{EC2 Cluster Composition}
 	\label{table:cluster_setup_ec2}
 \end{table}
@@ -93,7 +93,7 @@ For both instance types the network speeds are measured by launching the iperf3 
 			ping                  & 0.158 ms ($\sigma = 0.021$)  		& 1.29 ms ($\sigma = 0.047$)  \\
 		\end{tabular}
 	\end{adjustbox}
-	
+
 	\caption{EC2 Network Benchmarks}
 	\label{table:cluster_interconnect_benchmarks}
 \end{table}

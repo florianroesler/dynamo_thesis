@@ -20,7 +20,7 @@ Computing frameworks like OpenCL and CUDA offer this level of parallelization th
 OpenCL additionally allows to distribute programs to multiple devices without changes to the code. It even enables parallel computation by multiple devices as long as all participating devices belong to the same OpenCL platform, which in practice describes the hardware vendor. Thus multiple NVIDIA GPUs can share data and corresponding executions. For a heterogeneous cluster this approach is insufficient as various CPUs and GPUs are required to cooperate. In order to enable sharing workloads across varying devices a dedicated solution is presented throughout this chapter.
 
 For distributing partial tasks across a cluster many solutions are available. Though most require significant cluster management or programming efforts. As OpenCL is selected as the underlying computational framework per machine, the cluster distribution technology has to fit its capabilities.
-Similar to OpenMP, MPI has matured over decades as a standard solution for low level communications between multiple machines. As such it has also been used frequently in conjunction with OpenCL and has inspired frameworks based on this combination. As the MPI standard spans over 800 pages, covering more than 300 functions\cite{mpi_spec}, significant knowledge of the API is required in order to build correct and performant processes. As such MPI adds noticeable program complexity to existing OpenCL programs.
+Similar to OpenMP, MPI has matured over decades as a standard solution for low level communications between multiple machines. As such it has also been used frequently in conjunction with OpenCL and has inspired frameworks based on this combination. As the MPI standard spans over 800 pages, covering more than 300 functions\cite{mpi_spec}, significant knowledge of the API is required in order to build correct and performant processes. Lacking a fixed programming model, MPI allows programmers to decide, which communication methods to utilize for their given problem. While this grants creative freedom it also increases the program complexity of existing OpenCL programs as all communication has to be controlled explicitly, introducing the risk of deadlocks and other programming errors.
 
 On the opposite MapReduce based frameworks like Hadoop MapReduce offer a strict programming model with a fixed form to follow for each implemented algorithm. Multiple research projects cover the usage of OpenCL in conjunction with MapReduce, proving its feasibility\cite{hadoopcl}\cite{hadoop+}. Hadoop MapReduce requires an underlying distributed file system like HDFS, which increases management efforts as not only MapReduce nodes but also file system nodes have to be maintained within the cluster. Additionally, Hadoop MapReduce spawns a JVM for each worker process, thus introducing startup overheads and increasing memory usage.
 
@@ -62,7 +62,7 @@ In section \ref{aparapi} it was shown how little code and knowledge of internals
 \begin{figure}[H]
 	\includegraphics[width=0.35\textwidth]{images/aparapi_translation.pdf}
 	\centering
-	\caption{Average Kernel translation time}
+	\caption{Average Kernel translation time of Aparapi}
 	\label{img:aparapi_translation}
 \end{figure}
 
