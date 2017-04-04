@@ -17,7 +17,7 @@ The web site offers user interfaces for submitting and reviewing jobs or changin
 
 The system gives users the possibility to manually book or disband cloud resources based on their requirements and current resource utilization. Figure \ref{img:machine_order} shows the form that provides these functions. The currently available cloud resources are listed and can be released by pressing a button in the table. This view ignores local resources as those can not be simply disbanded and therefore only lists already running cloud instances. Below the table is a drop-down list with all available EC2 instance types can be used to specify which resources shall be booked.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1\textwidth]{screenshots/machine_order.png}
 	\centering
 	\caption{Ordering Cloud Resources}
@@ -26,7 +26,7 @@ The system gives users the possibility to manually book or disband cloud resourc
 
 In figure \ref{img:available_devices} the device listing is portrayed that includes all devices that are available through dOpenCL. The list includes local resources as well as the cloud resources, which are accordingly marked. It also portrays the names of the devices, which includes clock speeds and number of cores. 
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1\textwidth]{screenshots/available_devices.png}
 	\centering
 	\caption{List of available Devices}
@@ -35,7 +35,7 @@ In figure \ref{img:available_devices} the device listing is portrayed that inclu
 
 Submitted jobs are listed in an overview screen that includes progress information like the number of finished parts and how many parts are currently being computed. By taking historic performance measurements an estimate for the remaining time until completion can be given. A screenshot of this view can be seen in figure \ref{img:job_overview}. Pressing the \textit{Details} button for a job leads to a more fine grained view about the historic performance of the various devices.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1\textwidth]{screenshots/job_overview.png}
 	\centering
 	\caption{Job Overview}
@@ -44,7 +44,7 @@ Submitted jobs are listed in an overview screen that includes progress informati
 
 The details page of a job, which is displayed in figure \ref{img:job_details}, includes valuable information about the historic performance of every device that has participated in the computation of the job. It shows how many parts each device has finished as well as an average runtime per Kernel with its standard deviation. On the bottom of the page the currently active devices that compute Kernels for this job are visible.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1\textwidth]{screenshots/job_details.png}
 	\centering
 	\caption{Job Performance Stats}

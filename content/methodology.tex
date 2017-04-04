@@ -107,7 +107,38 @@ In this section the various utilized algorithms that are employed in the respect
 \label{matrix_multiplication_workload}
 In its naive algorithm the multiplication two square matrices of size $n\times n$, for every element in the resulting matrix of size $n\times n$, $n$ multiplications have to be performed. Therefore the computation belongs to the complexity class $O(n^3)$. Still, there exist much more sophisticated algorithms improving the complexity class like Strassen's algorithm that reduces the complexity to $O(n^{2.807})$\cite{strassen}. An even further improvement for large matrices represents the approach by Coppersmith with $O(n^{2.376})$\cite{coppersmith}. For the sake of simplicity throughout this research the naive algorithm is used. This also grants relatively long execution times in relation to the input and output data sizes.
 
-It must be noted that a matrix multiplication can not be perfectly split for parallelization. Instead, one of the matrices has to be present in its entirety, while the second matrix can be divided. This means that there is a growing overhead correlating to the amount of splits. With every additional split the overall transferable data is increased by 50\%. Therefore while an increased parallelization may grant faster computational capabilities of a cluster it also requires more data transfers.
+It must be noted that a matrix multiplication can not be perfectly split for parallelization. Instead, one of the matrices has to be present in its entirety, while the second matrix can be divided. This means that there is a growing overhead correlating to the amount of splits. With every additional split the overall transferable data is increased by 50\%. Therefore while a higher parallelization may grant faster computational capabilities of a cluster it also requires more data transfers.
+
+\begin{lstlisting}[caption=Aparapi Matrix Multiplication,captionpos=b,label=lst:aparapi_matrix_multiplication]
+public class MatrixKernel extends Kernel{
+
+  final float[] a;
+  final float[] b;
+  final float[] result;
+  final int size;
+
+  public MatrixKernel(float[] a, float[] b, float[] result, int size) {
+    this.a = a;
+    this.b = b;
+    this.result = result;
+    this.size = size;
+  }
+
+  @Override
+  public void run() {
+    int y = getGlobalId(0);
+    int x = getGlobalId(1);
+
+    float sum = 0;
+    for(int i=0; i<size; i++){
+      sum += a[y * size + i] * b[x * size + i];
+    }
+    result[y*size+x] = sum;
+  }
+}
+\end{lstlisting}
+
+Source Code \ref{lst:aparapi_matrix_multiplication} depicts an exemplary implementation of a square matrix multiplication in Aparapi. It must be noted that both matrices \textit{a} and \textit{b} are expected as one dimensional arrays. Additionally, matrix \textit{b} is meant to be supplied in a transposed form, which greatly enhances cache efficiency.
 
 \subsection*{Mandelbrot Set}
 

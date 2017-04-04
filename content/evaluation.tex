@@ -42,7 +42,7 @@ In order to simulate a shared cluster environment it becomes necessary to evalua
 
 The set of workloads thus comprises a mix of iterative and non-iterative jobs. While the iterative jobs have a fixed number of iterations and are not split per round, non-iterative jobs are split into 5 parts to enable parallelization. Although some jobs employ the same algorithm, the problem sizes are varied to create a more heterogeneous set. The implications of the problem sizes and splits for each job are explained in section \ref{workload_explanation}.
 
-In order to prove the heterogeneity of the supplied workloads in terms of computational complexity and data transfer properties, analytical test runs are executed on a local machine of type B that measure the execution time per Kernel and the transfered data sizes. The following figure display the results of running the suite five times:
+In order to prove the heterogeneity of the supplied workloads in terms of computational complexity and data transfer properties, analytical test runs are executed on a local machine of type B that measure the execution time per Kernel and the transfered data sizes. Figure \ref{img:benchmark_kernel_attributes} displays the average results of running the suite five times.
 
 \begin{figure}[H]
 	
@@ -66,7 +66,7 @@ In this scenario that covers the fully assisted setup a single machine acts as t
 
 \subsubsection*{Single Job Performance}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	
 	\includegraphics[width=1.0\textwidth]{images/local_fully_assisted_matrix.pdf}
 	\centering
@@ -76,7 +76,7 @@ In this scenario that covers the fully assisted setup a single machine acts as t
 
 The benchmark results for the matrix multiplication in figure \ref{img:fully_assisted_parallel_matrix} display that the performance gains for the given cluster configuration are not on par with the actual available performance. The second remote machine can still yield speedups to around x1.5 for bigger problem sizes while the second machine only raises that to around x1.7. From there on every further cluster expansion does only yield minimal improvements to a maximum of x1.75 and in the case of the last machine even produces minor slowdowns. This behavior is the result of the 1 GBit/s connection being such a narrow bottleneck that can not serve the participating machines adequately and thus keeps their CPUs idle for longer timespans.  
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	
 	\includegraphics[width=1.0\textwidth]{images/local_fully_assisted_mandelbrot.pdf}
 	\centering
@@ -88,7 +88,7 @@ In the case of the Mandelbrot set the cluster performs much better as shown in f
 
 \subsubsection*{Job Suite Performance}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	
 	\includegraphics[width=1.0\textwidth]{images/local_fully_assisted_full_benchmark.pdf}
 	\centering
@@ -105,7 +105,7 @@ In order to simulate the use case of the partly assisted computation, the initia
 \subsubsection*{Single Job Performance}
 \label{single_job_performance}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	
 	\includegraphics[width=1.0\textwidth]{images/local_partially_assisted_matrix.pdf}
 	\centering

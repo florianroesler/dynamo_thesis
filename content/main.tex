@@ -1,13 +1,13 @@
 \chapter{Dynamic OpenCL}
 \label{main}
-In this chapter the conceived and implemented framework, called Dynamic OpenCL, is explained. Section \ref{distribution} discusses the options for the underlying distribution technologies, including benchmarks to prove the feasibility of the final choices. In section \ref{abstraction} the utilized high-level abstraction of OpenCL code is introduced, portraying contributions to existing software solutions. Based on these explanations section \ref{job_design} contains insight into the defined job structure for parallelization within Dynamic OpenCL. The remaining sections about \textit{\nameref{main_hybrid_cloud}}, \textit{\nameref{scalable_performance}} and \textit{\nameref{optimized_scheduling}} cover solutions for flexible resource adjustments and performance improvements in shared environments. The resulting framework code as well as modified dependencies can be found by accessing the repository links given in section \ref{appendix:links} of the appendix.
+In this chapter the conceived and implemented framework, called Dynamic OpenCL, is explained. Section \ref{distribution} discusses the options for the underlying distribution technologies, including benchmarks to prove the feasibility of the final choices. In section \ref{abstraction} the utilized high-level abstraction of OpenCL code is introduced, portraying contributions of this thesis to existing software solutions. Based on these explanations, section \ref{job_design} contains insight into the defined job structure for parallelization within Dynamic OpenCL. The remaining sections about \textit{\nameref{main_hybrid_cloud}}, \textit{\nameref{scalable_performance}} and \textit{\nameref{optimized_scheduling}} cover solutions for flexible resource adjustments and performance improvements in shared environments. The resulting framework code as well as its modified dependencies can be found by accessing the repository links given in section \ref{appendix:links} of the appendix.
 
 \section{Distribution Approach}
 \label{distribution}
 As portrayed in section \ref{distribution_basics} and \ref{related} many viable options exist to distribute tasks among devices within a single machine as well as across a cluster. This section will explain the reasons for selecting the fitting approaches based on the goals declared in section \ref{goals}. The options are considered based on different levels of parallelization, depicted in figure \ref{img:parallelization_levels}. Following this structure the final solution should be able to parallelize across connected clusters, machines within a cluster, multiple devices within a machine and ultimately across all available device cores.
 
 \begin{figure}[H]
-	\includegraphics[width=0.55\textwidth]{drawings/parallelization_struct.pdf}
+	\includegraphics[width=0.65\textwidth]{drawings/parallelization_struct.pdf}
 	\centering
 	\caption{Levels of Parallelization}
 	\label{img:parallelization_levels}
@@ -48,7 +48,7 @@ Concluding the findings and design decisions a framework named Dynamic OpenCL is
 
 \begin{figure}[H]
 
-	\includegraphics[width=0.7\textwidth]{drawings/dynamic_opencl_arch.pdf}
+	\includegraphics[width=0.53\textwidth]{drawings/dynamic_opencl_arch.pdf}
 	\centering
 	\caption{Dynamic OpenCL Architecture}
 	\label{img:dynamic_opencl_arch}
