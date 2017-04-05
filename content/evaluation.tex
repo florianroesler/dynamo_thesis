@@ -6,26 +6,26 @@ For a meaningful evaluation different cluster setups based on various scenarios 
 
 \section{Benchmark Specification}
 
-In order to gather insights on the performance of distributing various workloads within differently typed networks several benchmarks are defined. On the one hand side single jobs are run to identify the general scaling capabilities of Dynamic OpenCL. On the other hand side multiple jobs are executed in parallel on a cluster to observe the scheduling behavior. The following subsections will explain the test setups in detail.
+In order to gather insights on the performance of distributing various workloads within differently typed networks, several benchmarks are defined. On the one hand side single jobs are run to identify the general scaling capabilities of Dynamic OpenCL. On the other hand side multiple jobs are executed in parallel on a cluster to observe the scheduling behavior. The following subsections explain the test setups in detail.
 
 \subsection{Single Job Performance}
 
-For a diverse view on the performance of Dynamic OpenCL two different workloads are chosen based on the amount of data that is required to execute them. Representing data intense jobs a matrix multiplication is determined that is executed for varying problem sizes. At first sight it may seem beneficial to divide the matrix multiplication into many partials for a granular parallelization. Actually this might lead to severe performance penalties due to the increased network overhead described in section \ref{matrix_multiplication_workload}. Therefore the number of splits is kept relatively low at six. This allows clusters that comprise one to three machines to distribute the partials evenly without creating too much data overhead.
+For a diverse view on the performance of Dynamic OpenCL two different workloads are chosen based on the amount of data that is required to execute them. Representing data intense jobs a matrix multiplication is determined that is executed for varying problem sizes. At first sight it may seem beneficial to divide the matrix multiplication into many partials for a granular parallelization. Actually this might lead to severe performance penalties due to the increased network overhead described in section \ref{matrix_multiplication_workload}. Therefore the number of splits is kept rather low at 6. This allows clusters that comprise 1 to 3 machines to distribute the partials evenly without creating too much data overhead.
 
-While the matrix multiplication puts heavy load on the network another workload with low data transfer requirements has to be evaluated. For this the Mandelbrot set is chosen as it can lead to long execution times without requiring large data transfers. Again the set is executed for different problem sizes that scale up the data sizes even though the absolute increase is much smaller than for the matrix multiplication. As Mandelbrot sets can be divided perfectly without overhead the split size is set to 20.
+While the matrix multiplication puts heavy load on the network another workload with low data transfer requirements has to be evaluated. For this the Mandelbrot set is chosen as it can lead to long execution times without requiring large data transfers. Again the computations are executed for different problem sizes that scale up the data sizes even though the absolute increase is much smaller than for the matrix multiplication. As Mandelbrot sets can be divided perfectly without overhead, the split size is set to 20.
 
 For each problem size the computation is repeated five times and the reported results include the arithmetic mean as well as the standard deviation. 
 
 \subsection{Job Suite Performance}
 
-In order to simulate a shared cluster environment it becomes necessary to evaluate Dynamic OpenCL by executing a variety of jobs in parallel. For this reason a job suite was compiled that comprises six workloads of various complexity and type. Not only should the runtime differ per Kernel of each job but also their transferable data. The list of workloads is shown in table \ref{table:benchmark_job_setup} with the respective abbreviated identifiers that are used throughout the chapter.
+In order to simulate a shared cluster environment it becomes necessary to evaluate Dynamic OpenCL by executing a variety of jobs in parallel. For this reason a job suite was compiled that comprises six workloads of various complexity and type. Not only should the runtime differ per Partial of each job but also their transferable data. The list of workloads is shown in table \ref{table:benchmark_job_setup} with the respective abbreviated identifiers that are used throughout the chapter.
 
 \begin{table}[!htb]
 	\centering
 	\begin{adjustbox}{width=0.95\textwidth}
 		\small
 		\begin{tabular}{l | l | l | l | l}
-			~ & \textbf{Abbreviation}						& \textbf{Problem Size}		& \textbf{Iterations}	& \textbf{Kernels per Iteration} \\
+			~ & \textbf{Abbreviation}						& \textbf{Problem Size}		& \textbf{Iterations}	& \textbf{Partials per Iteration} \\
 			\hline
 			\textbf{Matrix Multiplication 1}	& MM1  	& 8000x8000  								& 1 	& 5 \\
 			\textbf{Matrix Multiplication 2} 	& MM2	& 6000x6000  								& 1		& 5 \\
@@ -40,21 +40,21 @@ In order to simulate a shared cluster environment it becomes necessary to evalua
 	\label{table:benchmark_job_setup}
 \end{table}
 
-The set of workloads thus comprises a mix of iterative and non-iterative jobs. While the iterative jobs have a fixed number of iterations and are not split per round, non-iterative jobs are split into 5 parts to enable parallelization. Although some jobs employ the same algorithm, the problem sizes are varied to create a more heterogeneous set. The implications of the problem sizes and splits for each job are explained in section \ref{workload_explanation}.
+The set of workloads thus comprises a mix of iterative and non-iterative jobs. While the iterative jobs have a fixed number of iterations and are not split per round, non-iterative jobs are split into 5 partials to enable parallelization. Although some jobs employ the same algorithm, the problem sizes are varied to create a more heterogeneous set. The implications of the problem sizes and splits for each job are explained in section \ref{workload_explanation}.
 
-In order to prove the heterogeneity of the supplied workloads in terms of computational complexity and data transfer properties, analytical test runs are executed on a local machine of type B that measure the execution time per Kernel and the transfered data sizes. Figure \ref{img:benchmark_kernel_attributes} displays the average results of running the suite five times.
+In order to prove the heterogeneity of the supplied workloads in terms of computational complexity and data transfer properties, analytical test runs are executed on a local machine of Type B that measure the execution time per partial as well as the corresponding transfered data sizes. Figure \ref{img:benchmark_kernel_attributes} displays the average results of running the suite five times.
 
 \begin{figure}[H]
 	
 	\includegraphics[width=1.0\textwidth]{images/benchmark_kernel_data_transfers.pdf}
 	\centering
-	\caption{Average Kernel Runtimes and Data Transfer Sizes}
+	\caption{Average Benchmark Partial Runtimes and Data Transfer Sizes}
 	\label{img:benchmark_kernel_attributes}
 \end{figure}
 
-While it is visible that the computation times are significantly different, it can also be seen that the respective data transfers do not correlate to that attribute. For example, while MM2 and MB1 may require similar execution times, MM2 transfers 100x more data than MB1. The same is true for the iterative jobs KM and NB. It must be noted that MB1 and MB2 show a great standard deviation, which are not measurement errors but are a result of the nature of the algorithm. Mandelbrot calculations can not be split evenly in terms of computational effort and instead may run some Kernels for long times while having virtually no computations required by other Kernels.
+While it is visible that the computation times are significantly different, it can also be seen that the respective data transfers do not correlate to that attribute. For example, while MM2 and MB1 may require similar execution times, MM2 transfers 100x more data than MB1. The same is true for the iterative jobs KM and NB. It must be noted that MB1 and MB2 show a great standard deviation, which are not measurement errors but are a result of the nature of the algorithm. Mandelbrot calculations can not be split evenly in terms of computational effort and instead may run some partials for long times while having virtually no computations required by other partials.
 
-For the benchmark the performance indicator to measure is the total time to finish all jobs. As the selection of scheduling algorithms has a big impact on this value, it is necessary to define the utilized algorithms. For the job scheduling tier a round robin approach is used. On the device scheduling level a historic performance based algorithm is used that assigns a Kernel to the best performing device in case multiple devices are available. In order to allow for a fair comparison among multiple runs, all jobs are submitted before starting the execution engine.
+For the benchmark the performance indicator to measure is the total time to finish all jobs. As the selection of scheduling algorithms has a big impact on this value, it is necessary to define the utilized algorithms. For the job scheduling tier a round robin approach is used. On the device scheduling level a historic performance based algorithm is used that assigns a partial to the best suiting device in case multiple devices are available. In order to allow for a fair comparison among multiple runs, all jobs are submitted before starting the execution engine.
 
 \section{Local Distribution}
 \label{local_distribution}
@@ -62,7 +62,7 @@ A possible use case of Dynamic OpenCL is the outsourcing of entire computations 
 
 The second conceived cluster setup is defined as a \textit{Partially Assisted Computation}. In it the local cluster grants computational support to a machine that needs to finish a workload faster than it can achieve on its own. This is especially useful when certain deadlines have to be met but a single machine can not match the performance requirements.
 \subsection{Fully Assisted Computation}
-In this scenario that covers the fully assisted setup a single machine acts as the management node that receives the given jobs. In the first round it is connected to a single machine of type B, which acts as the execution node. The measured times of the benchmarks for the single execution node represents the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same type one by one. It must be noted that the central management node is of type A and therefore only provides 1 Gbit/s Ethernet.
+In this scenario that covers the fully assisted setup a single machine acts as the management node that receives the given jobs. In the first round it is connected to a single machine of Type B, which acts as the execution node. The measured times of the benchmarks for the single execution node represents the performance baseline. Subsequently the measurements are then repeated after adding more machines of the same type one by one. It must be noted that the central management node is of Type A and therefore only provides 1 Gbit/s Ethernet.
 
 \subsubsection*{Single Job Performance}
 
@@ -100,7 +100,7 @@ The job suite benchmark, which can be seen in figure \ref{img:local_fully_assist
 
 \subsection{Partly Assisted Computation}
 
-In order to simulate the use case of the partly assisted computation, the initial cluster setup is comprised of a single machine of type B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then in each benchmark iteration a remote node of type B is added. Therefore all participating machines employ 10 Gbit/s interconnects with the central node having the potential bottleneck as it has to serve multiple equal connections. The setup also concludes that not all Kernels have to take equal within the network as some might be computed directly on the central node.
+In order to simulate the use case of the partly assisted computation, the initial cluster setup is comprised of a single machine of Type B, which acts as the management node as well as an execution node. This node represents the performance baseline that serves for speedup comparisons. Then in each benchmark iteration a remote node of Type B is added. Therefore all participating machines employ 10 Gbit/s interconnects with the central node having the potential bottleneck as it has to serve multiple equal connections. The setup also concludes that not all Kernels have to take equal within the network as some might be computed directly on the central node.
 
 \subsubsection*{Single Job Performance}
 \label{single_job_performance}
@@ -142,7 +142,7 @@ The results in figure \ref{img:local_benchmark_results} indicate that employing 
 
 \section{Hybrid Distribution}
 
-After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case could be that the local machines can not provide sufficient performance to match the current requirements. Then employing remote cloud resources can be a meaningful option to gain additional performance for short periods of time. For this, the cluster initially holds a single local machines of type B. It serves as a management node as well as an execution node. Its performance in the benchmarks is used as the baseline for comparisons. Then additional cloud resources are booked from the EC2 and added to the cluster. For the cloud resources the high performance instance type c4.8xlarge is chosen, which is described in \ref{cluster_composition}.
+After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case could be that the local machines can not provide sufficient performance to match the current requirements. Then employing remote cloud resources can be a meaningful option to gain additional performance for short periods of time. For this, the cluster initially holds a single local machines of Type B. It serves as a management node as well as an execution node. Its performance in the benchmarks is used as the baseline for comparisons. Then additional cloud resources are booked from the EC2 and added to the cluster. For the cloud resources the high performance instance type c4.8xlarge is chosen, which is described in \ref{cluster_composition}.
 
 While 10 Gbit/s interconnects is proven to be a potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster is set in Potsdam and should therefore be connected to the geographically closest region that is available on the EC2 cloud, which is in Frankfurt. As an indicator the interconnection speed between the two locations is measured by using iperf3 and ping from the local machine to a cloud machine over a minute. These results can then be compared to the measured metrics from within the EC2, which were presented in \ref{cluster_composition}. Although local EC2 bandwidths and latencies can reach promising values of 9.44 Gbit/s and 0.158 ms, accessing the same instances from a network outside the cloud can only yield 169.26 Mbit/s ($\sigma = 11.93$) and 18.9 ms ($\sigma = 0.17$). A reason for the low remote performance numbers could be bottlenecks within the local network that reduce the bandwidth significantly. In order to investigate this theory three machines of type c4.8xlarge are started. Then a single local machine launches iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in figure \ref{img:EC2 Parallel Network Performance}.
 
@@ -200,7 +200,7 @@ In order to optimize the assignment of data intense jobs to the appropriate devi
 
 Figure \ref{img:hybrid_benchmark_results_network_aware} shows that the new scheduler introduces noticeable benefits compared to the historical performance based approach. While a single c4.8xlarge instance improves the system performance by x1.42, adding another one leads to a x1.83 increase. Compared to x1.28 and x1.55 respectively for the performance based scheduler this depicts a significant improvement even though the new mechanism is basic. When a third c4.8xlarge machine is introduced to the cluster no further speedup can be achieved. This can be reasoned by a too low number of jobs with small data transfers within the job suite to match the speed of the three cloud instances.
 
-In order to prove that Dynamic OpenCL can deal with a multitude of different small data jobs in parallel a second job suite is specified. For this six Mandelbrot set and four N-body computations of different sizes are used that have average Kernel runtimes between 360 milliseconds and 8.5 seconds on a machine of type B. The data sizes per Kernel are in the range between 0.75 megabytes and 7 megabytes. Figure \ref{img:low_data_benchmark_statistics} shows the average runtimes on the type B machine and data transfer sizes per Kernel.
+In order to prove that Dynamic OpenCL can deal with a multitude of different small data jobs in parallel a second job suite is specified. For this six Mandelbrot set and four N-body computations of different sizes are used that have average Kernel runtimes between 360 milliseconds and 8.5 seconds on a machine of Type B. The data sizes per Kernel are in the range between 0.75 megabytes and 7 megabytes. Figure \ref{img:low_data_benchmark_statistics} shows the average runtimes on the Type B machine and data transfer sizes per Kernel.
 
 \begin{figure}[H]	
 	\includegraphics[width=1.0\textwidth]{images/lowdata_benchmark_statistics.pdf}

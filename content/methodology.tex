@@ -13,7 +13,7 @@ In most test cases the available network speed plays a crucial role to performan
 
 Dynamic OpenCL is written in Java, which means that most benchmarks will employ the JVM for parts of the application. Measuring performance for algorithms that run in the JVM usually requires extended control over some non-deterministic features, namely just-in-time compilation and garbage collection\cite{rigorous_java}. For Dynamic OpenCL the JVM is only used for management code while the actual computations are executed in OpenCL. Therefore these non-deterministic effects are neglected as the Java code only takes up small fractions of the computational capabilities of a machine.
 
-For all recorded benchmarks multiple samples are taken. As most workloads are tested in various problem sizes, at least five measurements are taken per size. For short running single test cases at least 30 samples are taken. All results are provided including the arithmetic mean with corresponding standard deviation. In the case of multiple sequential executions of the same workload an initial warm up run is executed that is not recorded in the results. Instead it serves to initialize certain system components that would otherwise skew the runtime of the first execution.
+For all recorded benchmarks multiple samples are taken. As most workloads are tested in various problem sizes, five measurements are taken per size. For short running single test cases at least 30 samples are taken to closely approximate the true mean value\cite{measuring_computer_performance}. All results are provided including the arithmetic mean with corresponding standard deviation. In the case of multiple sequential executions of the same workload an initial warm up run is executed that is not recorded in the results. Instead it serves to initialize certain system components that would otherwise skew the runtime of the first execution.
 
 \section{Cluster Composition}
 \label{cluster_composition}
@@ -142,19 +142,19 @@ Source Code \ref{lst:aparapi_matrix_multiplication} depicts an exemplary impleme
 
 \subsection*{Mandelbrot Set}
 
-Mandelbrot sets can be used to draw fractals by calculating membership to the set for each coordinate of an image. Assuming a square image the computation belongs to the complexity class $O(n^2)$. An important feature of Mandelbrot calculations is the possibility to increase computation times without growing the size of the image. This can be done by raising the iterations factor, which determines the precision of the resulting picture. Therefore Mandelbrot set computations can be time consuming while requiring only small input data.
+Mandelbrot sets can be used to draw fractals by calculating membership to the set for each coordinate of an image\cite{mandelbrot_article}. Assuming a square image the computation belongs to the complexity class $O(n^2)$. An important feature of Mandelbrot calculations is the possibility to increase computation times without growing the size of the image. This can be done by raising the iterations factor, which determines the precision of the resulting picture. Therefore Mandelbrot set computations can be time consuming while requiring only small input data.
 
 In terms of parallelization Mandelbrot sets can be perfectly split as only the coordinates of a point are required to compute membership. Thus, there is no data overhead involved in dividing the computation to multiple machines.
 
 \subsection*{N-Body Problem}
 
-The n-body problem is mainly used in astrophysics to determine celestial movement, which is heavily influenced by gravitational effects. Celestial bodies act forces on each other, even when distances are huge. For instance, the earth is influenced by every existing object in the universe but most of these forces are weak in comparison to the sun's gravitation. Calculating the n-body problem without approximations therefore requires to accumulate the imposed forces on every object by all other objects. Thus, the complexity class is $O(n^2)$.
+The n-body problem is prominent in astrophysics, where the determination of celestial movement is heavily influenced by gravitational effects\cite{nbody_article}. Celestial bodies act forces on each other, even at great distances. For instance, the earth is influenced by every existing object in the universe but most of these forces are weak in comparison to the sun's gravitation. Calculating the n-body problem without approximations therefore requires to accumulate the imposed forces on every object by all other objects. Thus, the complexity class is $O(n^2)$.
 
 It must be noted that dividing the n-body problem for parallelization leads to significant overhead as each split requires the whole dataset to calculate influences by every object. This means that for $n$ splits the data set has to be transfered $n$ times as well.
 
 \subsection*{K-Means Clustering}
 
-K-means clustering is an iterative data mining algorithm used for assigning $n$ objects to $k$ clusters. In order to determine membership of an object, its distance (e.g. Euclidean distance) to each of the $k$ clusters is determined, which reveals the nearest cluster. This cluster then inhibits the object. For each iteration the cluster coordinates are reassigned to their respective centroids and the membership of each object is recalculated. This is repeated for a fixed number of times or until a specified accuracy is reached, which indicates that the centroids converge.
+K-means clustering is an iterative data mining algorithm used for assigning $n$ objects to $k$ clusters\cite{kmeans_paper}. In order to determine membership of an object, its distance (e.g. Euclidean distance) to each of the $k$ clusters is determined, which reveals the nearest cluster. This cluster then inhibits the object. For each iteration the cluster coordinates are reassigned to their respective centroids and the membership of each object is recalculated. This is repeated for a fixed number of times or until a specified accuracy is reached, which indicates that the centroids converge.
 
 With $n$ objects, $k$ clusters, $d$ dimensions and $i$ iterations the complexity of k-means clustering becomes $O(n*k*d*i)$. In order to simplify the complexity during benchmarking, all variables but the number of objects remain fixed, thus leading to a complexity of $O(n)$.
 
