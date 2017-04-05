@@ -1,6 +1,6 @@
 \chapter{Dynamic OpenCL}
 \label{main}
-In this chapter the conceived and implemented framework, called Dynamic OpenCL, is explained. Section \ref{distribution} discusses the options for the underlying distribution technologies, including benchmarks to prove the feasibility of the final choices. In section \ref{abstraction} the utilized high-level abstraction of OpenCL code is introduced, portraying contributions of this thesis to existing software solutions. Based on these explanations, section \ref{job_design} contains insight into the defined job structure for parallelization within Dynamic OpenCL. The remaining sections about \textit{\nameref{main_hybrid_cloud}}, \textit{\nameref{scalable_performance}} and \textit{\nameref{optimized_scheduling}} cover solutions for flexible resource adjustments and performance improvements in shared environments. The resulting framework code as well as its modified dependencies can be found by accessing the repository links given in section \ref{appendix:links} of the appendix.
+In this chapter the conceived and implemented framework, called Dynamic OpenCL, is explained. Section \ref{distribution} discusses the options for the underlying distribution technologies, including benchmarks to prove the feasibility of the final choices. In section \ref{abstraction} the utilized high level abstraction of OpenCL code is introduced, portraying contributions of this thesis to existing software solutions. Based on these explanations, section \ref{job_design} contains insight into the defined job structure for parallelization within Dynamic OpenCL. The remaining sections about \textit{\nameref{main_hybrid_cloud}}, \textit{\nameref{scalable_performance}} and \textit{\nameref{optimized_scheduling}} cover solutions for flexible resource adjustments and performance improvements in shared environments. The resulting framework code as well as its modified dependencies can be found by accessing the repository links given in section \ref{appendix:links} of the appendix.
 
 \section{Distribution Approach}
 \label{distribution}
@@ -13,7 +13,7 @@ As portrayed in section \ref{distribution_basics} and \ref{related} many viable 
 	\label{img:parallelization_levels}
 \end{figure}
 
-As a first step the options for parallelization on multiple device cores are considered. Low level solutions like OpenMP or OpenACC are matured and known for simple mechanisms to parallelize portions of a program. While programmers are given freedom to utilize available directives according to their demands, this also increases the risk for programming errors especially in more complex scenarios. \citeauthor{openmp_mistakes} have shown that novice OpenMP programmers tend to make common mistakes regarding correctness and performance in small and medium-sized programs\cite{openmp_mistakes}. Programmers are thus not only mandated to understand the OpenMP specification but also to choose the right set of directives for the respective problem. When targeting accelerators the same learning process has to be undertaken for the OpenACC specification. As all communication and synchronization across multiple cores and devices has to be handled by the programmer, a significant layer of complexity through the utilization of code directives is introduced. 
+As a first step the options for parallelization on multiple device cores are considered. Low level solutions like OpenMP or OpenACC are matured and known for simple mechanisms to parallelize portions of a program. While programmers are given freedom to utilize available directives according to their demands, this also increases the risk for programming errors especially in more complex scenarios. \citeauthor{openmp_mistakes} have shown that novice OpenMP programmers tend to make common mistakes regarding correctness and performance in small and medium-sized programs\cite{openmp_mistakes}. Programmers are thus not only mandated to understand the OpenMP specification but also to choose the right set of directives for the respective problem. When targeting accelerators the same learning process has to be undertaken for the OpenACC specification. As all communication and synchronization across multiple cores and devices has to be handled by the programmer, a significant layer of complexity through the utilization of code directives is introduced.
 
 Computing frameworks like OpenCL and CUDA offer this level of parallelization through a fixed programming model, which dictates a standardized form in which algorithms have to be designed. For example, OpenCL proposes the creation of Kernels that follow an execution model based on work-groups and work-items. While CUDA offers similar capabilities as OpenCL, it only supports NVIDIA GPUs and lacks CPU support. This contradicts with the proposed goal of a heterogeneous environment in which devices of different types and vendors cooperate. Therefore OpenCL is chosen for multi-core parallelization.
 
@@ -54,7 +54,7 @@ Concluding the findings and design decisions a framework named Dynamic OpenCL is
 	\label{img:dynamic_opencl_arch}
 \end{figure}
 
-\section{High-Level Abstraction}
+\section{High Level Abstraction}
 \label{abstraction}
 
 In section \ref{aparapi} it was shown how little code and knowledge of internals are required for building OpenCL computations with the help of Aparapi. Including the library in the final framework would not only benefit end users due to a simplified programming environment but also greatly assist during the creation of the framework itself. Through Aparapi, Java could be used as the overall project language while abandoning C++ for most parts with the exception of dOpenCL and Aparapi internals. Due to the choice of a more high level language for the less performance critical code, Java promises faster building time and better maintainability. In order to achieve this, Aparapi has to be connected to dOpenCL to harness the distribution capabilities. First, it has to be evaluated, whether Aparapi performs adequately compared to an original OpenCL algorithm. For that cause the matrix multiplication benchmark from section \ref{distribution} is transformed to Aparapi and executed on a machine of Type B from the benchmark cluster. As Aparapi translates the Java code for Kernels it has not encountered before, the translation time would skew the results for the first iteration of a run. Therefore at first the average translation time for differently sized Kernels is measured on a machine of Type B with 100 iterations per Kernel, depicted in \ref{img:aparapi_translation}.
@@ -139,17 +139,17 @@ public class Addition {
 	int[] a = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 	int[] b = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 	int[] result = new int[a.length];
-	
+
 	int partialWidth = a.length / partialCount;
 	for(int i = 0; i < partialCount; i++){
       int[] aPartial = Arrays.copyOfRange(a, i * partialWidth, (i + 1) * partialWidth);
       int[] bPartial = Arrays.copyOfRange(b, i * partialWidth, (i + 1) * partialWidth);
-	
+
 	  AdditionKernel additionKernel = new AdditionKernel(aPartial, bPartial);
       additionKernel.execute(partialWidth);
       System.arraycopy(additionKernel.result, 0, result, i * partialWidth, partialWidth);
 	}
-	
+
 	System.out.println(Arrays.toString(result));
   }
 }
@@ -270,7 +270,7 @@ Simulations allow to draw conclusions about algorithm timings by running it on a
 
 While code analysis and simulation do not employ the actual hardware, benchmarks may be used to obtain indicators about the performance of a specific device for a given partial. For instance, \citeauthor{quantitative_performance} have proposed a model in which they measure key performance indicators like buffer bandwidth of a GPU\cite{quantitative_performance}. These measurements are then used to predict execution times of Kernels based on the identified bottlenecks by analyzing the instructions at hand. Other approaches run the Kernels with varying parameters in order to infer the dominant performance factors\cite{gpgpu_performance}. In all cases the methods are not universally transferable to other hardware architectures but have to be adjusted manually or utilizing machine learning.
 
-All of the presented approaches are promising in their respective field of application. Still, the major limiting factor is the apparent focus on a specific hardware architecture, which makes the approaches unsuitable in the context of OpenCL. In order to cover all supported devices many different models would have to be employed, with each upcoming hardware architecture also introducing new models to Dynamic OpenCL. 
+All of the presented approaches are promising in their respective field of application. Still, the major limiting factor is the apparent focus on a specific hardware architecture, which makes the approaches unsuitable in the context of OpenCL. In order to cover all supported devices many different models would have to be employed, with each upcoming hardware architecture also introducing new models to Dynamic OpenCL.
 
 With the distribution of partials across a network not only the performance of the execution devices matters but also the speed of the network connection itself. This becomes especially important when utilizing resources from a distant cloud, which inherently can not offer the same bandwidth and latency as a local network. For example, in a benchmark a local cluster with 10 Gbit/s interconnects installed can only reach bandwidths of 190 Mbit/s when communicating to a low priced EC2 instance. Still the EC2 instance is able to transfer data at the speed of ~800 Mbit/s within the local EC2 cluster. Thus both machines perform well in their respective local network but the interconnection through the internet becomes the bottleneck. Such asymmetric connections could significantly affect data intense Kernels where the data transfers might exceed computation times on a slow connection. Thus, sending such Kernels to a high performance cloud device could be slower than sending it to a low performance local machine.
 
