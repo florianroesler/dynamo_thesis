@@ -46,10 +46,10 @@ The paper by \citeauthor{fluidic} proposes parallelizing Kernels among the CPU a
 \label{cluster_distribution}
 \subsection*{dOpenCL}
 
-dOpenCL wraps the local OpenCL implementation in their own provided ICD. When the driver is used on the host, it forwards the API calls to specified machines in the network, which run a dOpenCL daemon\cite{dopencl}. The calls are received by the daemon and executed using the available OpenCL installation on the remote machine with the results being returned via network. This allows to utilize remote devices as if they were installed locally in the host machine. For example a remote GPU would appear as if it was installed in the local machine's peripheral component interconnect express (abbr. PCIe) slot. Therefore OpenCL Kernels do not require changes to run remotely as dOpenCL hides network transfers behind the standard OpenCL API. An overview of the architecture for an example cluster is shown in figure \ref{img:dopencl_arch}.
+dOpenCL wraps the local OpenCL implementation in their own provided ICD. When the driver is used on the host, it forwards the API calls to specified machines in the network, which run a dOpenCL daemon\cite{dopencl}. The calls are received by the daemon and executed using the available OpenCL installation on the remote machine with the results being returned via network. This allows to utilize remote devices as if they were installed locally in the host machine. For example, a remote GPU would appear as if it was installed in the local machine's peripheral component interconnect express (abbr. PCIe) slot. Therefore OpenCL Kernels do not require changes to run remotely as dOpenCL hides network transfers behind the standard OpenCL API. An overview of the architecture for an example cluster is shown in figure \ref{img:dopencl_arch}.
 
 \begin{figure}[H]
-	
+
 	\includegraphics[width=0.9\textwidth]{drawings/dopencl_arch.pdf}
 	\centering
 	\caption{dOpenCL Architecture Overview}
@@ -70,7 +70,7 @@ VirtualCL offers an extension, called SuperCL, which is aimed at reducing networ
 
 \subsection*{SnuCL}
 
-SnuCL represents another library, aside from dOpenCL and VirtualCL, that provides a mechanism to access compute devices of a cluster as if they were available locally in a single local machine\cite{snucl}. Instead of simply forwarding API calls to remote machines, SnuCL heavily transforms Kernels depending on the available runtimes of a machine. For example it translates OpenCL to CUDA when only the CUDA platform is provided by the machine. Additionally, it can transform OpenCL code to C, which is then executed within a thread for each core of a CPU.
+SnuCL represents another library, aside from dOpenCL and VirtualCL, that provides a mechanism to access compute devices of a cluster as if they were available locally in a single local machine\cite{snucl}. Instead of simply forwarding API calls to remote machines, SnuCL heavily transforms Kernels depending on the available runtimes of a machine. For example, it translates OpenCL to CUDA when only the CUDA platform is provided by the machine. Additionally, it can transform OpenCL code to C, which is then executed within a thread for each core of a CPU.
 
 Furthermore, SnuCL introduces a virtual global memory, in which buffers may be shared among devices. It manages the consistency among shared buffers and attempts to minimize copy operations throughout the execution in order to save bandwidth. This is achieved by translating the OpenCL code to C, which is then used to identify whether a buffer will be written during execution. Buffers that are not written can therefore remain on a device without the requirement to be copied back to the host.
 
