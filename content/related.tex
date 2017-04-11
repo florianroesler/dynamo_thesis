@@ -7,9 +7,9 @@ In this chapter several related research papers are explained that provide solut
 \subsection*{SOCL}
 SOCL is an OpenCL based framework by \citeauthor{socl} that offers the following key features\cite{socl}:
 \begin{itemize}
-    \item Schedule and load balance OpenCL Kernels across multiple devices
-    \item Manage memory transfers and coherency
-    \item Dynamically adapt granularity of kernels
+    \item Scheduling and load balancing of OpenCL Kernels across multiple devices
+    \item Management of memory transfers and coherency
+    \item Dynamic adaption of kernel granularity
 \end{itemize}
 
 SOCL acts as a middleware with its own OpenCL ICD utilizing other installed ICDs on a machine. Thus, it is able to implement functionalities such as shared command queues for multiple devices by hiding the divided command queues of each device behind its API. Through this method load balancing techniques can also be applied.
@@ -17,16 +17,14 @@ SOCL acts as a middleware with its own OpenCL ICD utilizing other installed ICDs
 One of the main features is the automatic granularity adaption of Kernels, which allows the appropriate partitioning of tasks according to respective performance capabilities of devices in a heterogeneous cluster. To enable the adaption, programmers have to supply the framework with a function that indicates how to divide the kernel with its corresponding data.
 
 \subsection*{Static multi-device load balancing for OpenCL}
-\citeauthor{delalama_2012} published an approach for executing a single kernel on multiple devices as well as a load balancing mechanism based on each device's computing power\cite{delalama_2012}.
+\citeauthor{delalama_2012} published an approach for executing a single kernel on multiple devices as well as a load balancing mechanism based on each device's computing capabilities\cite{delalama_2012}.
 
-Instead of splitting the data into smaller parts, they replicate its entirety across the utilized devices and merge the resulting output buffers. These merges are based on an algorithm that finds buffer elements that underwent write operations during the execution and therefore should be present in the final result.
-
-As their future work they announce the development of dynamically adaptable load balancing algorithms.
+Instead of splitting the data into smaller parts, they replicate its entirety across the utilized devices and merge the resulting output buffers. The merge process is based on an algorithm that finds buffer elements that underwent write operations during the execution and therefore should be present in the final result.
 
 
 \subsection*{STEPOCL}
 
-\citeauthor{stepocl} present a framework called STEPOCL, which offers programming multi-device applications in a specifically developed domain specific language\cite{stepocl}. Their promoted features are linear performance scaling with increasing devices as well as comparable performance to hand written OpenCL applications.
+\citeauthor{stepocl} present a framework called STEPOCL, which offers programming multi-device applications using a specifically developed domain specific language\cite{stepocl}. Their promoted features are linear performance scaling with increasing device count as well as comparable performance to manually written OpenCL applications.
 
 For a successful distribution of a Kernel across multiple devices STEPOCL requires OpenCL Kernels to be submitted with an accompanying configuration that describes the following facts:
 \begin{itemize}

@@ -1,6 +1,6 @@
 \chapter{Evaluation}
 \label{evaluation}
-In section \ref{distribution} and \ref{abstraction} it is shown that dOpenCL and Aparapi deliver satisfying performance when used on their own. Combining both libraries within Dynamic OpenCL demands proof whether the overall solution can still bring noticeable benefits to cluster computations.
+In section \ref{distribution} and \ref{abstraction} it was shown that dOpenCL and Aparapi deliver satisfying performance when used on their own. Combining both libraries within Dynamic OpenCL demands verification whether the overall solution can still bring noticeable benefits to cluster computations.
 
 For a meaningful evaluation, different cluster setups based on various scenarios are employed. Those include local clusters, hybrid clusters as well as pure cloud clusters. The employed machine types and workloads are defined in chapter \ref{benchmarking_methodology}.
 
@@ -18,7 +18,7 @@ For each algorithm and problem size the computation is repeated five times. The 
 
 \subsection{Job Suite Performance}
 
-In order to simulate a shared cluster environment it becomes necessary to evaluate Dynamic OpenCL by executing a variety of jobs in parallel. For this reason a job suite is compiled that comprises six workloads of various complexity and type. Not only should the runtime differ per partial of each job but also their transferable data. The list of workloads is shown in table \ref{table:benchmark_job_setup} with the respective abbreviated identifiers that are used throughout the chapter.
+In order to simulate a shared cluster environment it becomes necessary to evaluate Dynamic OpenCL by executing a variety of jobs in parallel. For this reason a job suite was compiled that comprises six workloads of various complexity and type. Not only should the runtime differ per partial of each job but also their transferable data. The list of workloads is shown in table \ref{table:benchmark_job_setup} with the respective abbreviated identifiers that are used throughout the chapter.
 
 \begin{table}[!htb]
 	\centering
@@ -42,7 +42,7 @@ In order to simulate a shared cluster environment it becomes necessary to evalua
 
 The set of workloads thus comprises a mix of iterative and non-iterative jobs. While the iterative jobs have a fixed number of iterations and are not split per round, non-iterative jobs are split into 5 partials to enable parallelization. Although some jobs employ the same algorithm, the problem sizes are varied to create a more heterogeneous set. The implications of the problem sizes and splits for each job are explained in section \ref{workload_explanation}.
 
-In order to prove the heterogeneity of the supplied workloads in terms of computational complexity and data transfer properties, analytical test runs are executed on a local machine of Type B that measure the execution time per partial as well as the corresponding transfered data sizes. Figure \ref{img:benchmark_kernel_attributes} displays the average results of running the suite five times.
+In order to prove the heterogeneity of the supplied workloads in terms of computational complexity and data transfer properties, analytical test runs were executed on a local machine of Type B that measure the execution time per partial as well as the corresponding transfered data sizes. Figure \ref{img:benchmark_kernel_attributes} displays the average results of running the suite five times.
 
 \begin{figure}[H]
 
