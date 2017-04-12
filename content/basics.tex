@@ -6,7 +6,7 @@ In this chapter the technologies that form the foundation of Dynamic OpenCL are 
 \label{distribution_basics}
 
 \subsection*{OpenMP and OpenACC}
-OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which instruct the execution environment how to parallelize the program \cite{openmp_spec}. The resulting code can then be run in multiple threads that can be scheduled on many CPU cores in parallel. OpenACC offers similar functionality as OpenMP but aims at offloading parallel computations to attached accelerators like GPUs \cite{openacc_spec}. Thus if offers additional keywords specifically for assigning parallel computations to available accelerators.
+OpenMP represents a compiler extension that allows programmers to harness parallel computational power on a machine. It adds functions and flags to the respective language (C, C++ and Fortran are currently supported), which instruct the execution environment how to parallelize the program\cite{openmp_spec}. The resulting code can then be run in multiple threads that can be scheduled on many CPU cores in parallel. OpenACC offers similar functionality as OpenMP but aims at offloading parallel computations to attached accelerators like GPUs\cite{openacc_spec}. Thus if offers additional keywords specifically for assigning parallel computations to available accelerators.
 
 \begin{lstlisting}[caption=OpenMP Code Example in C,captionpos=b,label=lst:openmp_code]
 void example()
@@ -19,7 +19,7 @@ void example()
 }
 \end{lstlisting}
 
-The OpenMP example in Source Code \ref{lst:openmp_code} presents a simple parallelized loop that prints the index of the current iteration. As multiple iterations can be executed at the same time, the printed digits do not necessarily have to be in order.
+The OpenMP example in source code \ref{lst:openmp_code} presents a simple parallelized loop that prints the index of the current iteration. As multiple iterations can be executed at the same time, the printed digits do not necessarily have to be in order.
 
 \subsection*{MPI}
 Although OpenMP and OpenACC are powerful tools for parallelization on a single machine, in order to write large scale software, communications across multiple machines are necessary. One standard to enable internode communicaion is MPI. MPI is implemented for multiple languages and extends them with functions to identify a process and send as well as receive messages\cite{mpi_spec}. While the provided mechanisms may be used to run multiple parallel processes on a single machine, they can also be employed to accomplish communications between cluster nodes.
@@ -92,7 +92,7 @@ Having many work-groups assigned per CU also enables OpenCL to hide latencies fo
 
 \subsection*{Memory Model}
 
-Memory in OpenCL is divided into two major regions, the host memory and the device memory. The host memory is used by the host to store Kernels and execution data. For an execution the required data is transferred from the host memory to the device memory, which is subdivided into different levels:
+Memory in OpenCL is divided into two major regions, the host memory and the device memory. The host memory is used by the host to store kernels and execution data. For an execution the required data is transferred from the host memory to the device memory, which is subdivided into different levels:
 
 \begin{description}[align=left,leftmargin=0cm]
   \item [Private] Private memory is only accessible by a single work-item that owns it. As such it is mainly used for temporary variables and allows no sharing to other work-items.
@@ -105,7 +105,7 @@ All of the available memory levels have different sizes, depending on the utiliz
 
 \subsection*{Kernels}
 
-OpenCL Kernels are written in OpenCL C, which is a superset of C99, containing additional keywords that are related to memory access and synchronization. Kernels have to be started from so called host code, which runs on the machine that contains the targeted devices. The host code is usually written in C or C++ as the standard offers APIs for these languages. Still, third parties offer bindings for other languages. Table \ref{table:opencl_language_bindings} contains some available language bindings.
+OpenCL kernels are written in OpenCL C, which is a superset of C99, containing additional keywords that are related to memory access and synchronization. Kernels have to be started from so called host code, which runs on the machine that contains the targeted devices. The host code is usually written in C or C++ as the standard offers APIs for these languages. Still, third parties offer bindings for other languages. Table \ref{table:opencl_language_bindings} contains some available language bindings.
 
 \begin{table}[htb]
 	\centering
@@ -148,7 +148,7 @@ While OpenCL supports more device types and vendors, it seems questionable wheth
 
 \section{Aparapi}
 \label{aparapi}
-Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL Kernels\cite{aparapi}. Firstly, it contains bindings to access OpenCL functions through a Java Native Interface (abbr. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. An overview of the call chain is given in figure \ref{img:aparapi_call_chain}.
+Aparapi is a library that offers extensive functionality to ease the usage of the OpenCL API and minimize programming effort when developing OpenCL kernels\cite{aparapi}. Firstly, it contains bindings to access OpenCL functions through a Java Native Interface (abbr. JNI), abstracting and bundling multiple low level calls to Java high level functions. Secondly, Aparapi is able to translate Java code to valid OpenCL kernels. An overview of the call chain is given in figure \ref{img:aparapi_call_chain}.
 
 \begin{figure}[!htb]
 	\includegraphics[width=0.75\textwidth]{drawings/aparapi_call_chain.pdf}
@@ -175,6 +175,6 @@ kernel.execute(10);
 System.out.println(Arrays.toString(c));
 \end{lstlisting}
 \end{minipage}
-The Source Code \ref{lst:aparapi_kernel} reproduces the vector addition example code from section \ref{opencl} in which elements at the same index of two arrays are summed and written to a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define which data should be written or read in order to improve performance. This is especially useful when input data does not change during computation and therefore does not have to be copied back to the host. While an original OpenCL implementation would require roughly 50 lines of auxiliary code, Aparapi hides tasks like device selection and data handling behind its API when no specific control is needed. This enables developers to program algorithms considerably faster and offers beginners a quick access to OpenCL features without knowledge of low level mechanisms.
+The source code \ref{lst:aparapi_kernel} reproduces the vector addition example code from section \ref{opencl} in which elements at the same index of two arrays are summed and written to a third array. Ultimately, each element from the result array is printed. It also highlights that input data may be defined in Java code itself and the results are again available in Java after execution. This is possible as Aparapi automatically copies the participating data back and forth between the host code and the executing device. For a more granular approach, developers can also define which data should be written or read in order to improve performance. This is especially useful when input data does not change during computation and therefore does not have to be copied back to the host. While an original OpenCL implementation would require roughly 50 lines of auxiliary code, Aparapi hides tasks like device selection and data handling behind its API when no specific control is needed. This enables developers to program algorithms considerably faster and offers beginners a quick access to OpenCL features without knowledge of low level mechanisms.
 
 Although the code translation of Aparapi may work for many use cases, certain limitations apply to the Java code that can be handled. Information about these restrictions can be found in the documentation on GitHub\cite{aparapi_kernel_guidelines}, which is partly outdated as newer features lifted corresponding limitations. In the current version, Aparapi only supports the primitive data types boolean, byte, short, int, long, and float. While programmers may also employ object orientation, Aparapi can only translate classes whose attributes are again primitives. Additionally, not all control-flow features of Java are supported by Aparapi. Indeed it can only handle conditionals and counting \textit{for}-loops. Thus, \textit{switch}, \textit{break}, \textit{continue}, enhanced \textit{for}-loops and recursion are not allowed.
