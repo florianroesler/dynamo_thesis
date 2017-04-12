@@ -26,18 +26,18 @@ Instead of splitting the data into smaller parts, they replicate its entirety ac
 
 \citeauthor{stepocl} present a framework called STEPOCL, which offers programming multi-device applications using a specifically developed domain specific language\cite{stepocl}. Their promoted features are linear performance scaling with increasing device count as well as comparable performance to manually written OpenCL applications.
 
-For a successful distribution of a Kernel across multiple devices STEPOCL requires OpenCL kernels to be submitted with an accompanying configuration that describes the following facts:
+For a successful distribution of a kernel across multiple devices STEPOCL requires OpenCL kernels to be submitted with an accompanying configuration that describes the following facts:
 \begin{itemize}
     \item The data layout, which is used to split the data into subdivisions.
     \item A tiling configuration depending on the targeted device types. E.g. specific work-group sizes for CPUs and GPUs.
     \item A meta control flow of the application, which for example allows iterative algorithms.
 \end{itemize}
 
-Utilizing the configuration, an OpenCL Kernel is transformed to a new OpenCL Kernel that supports computing the partitioned data. During this compilation step STEPOCL identifies available devices that it can distribute the submitted workloads to. The distribution ratio of workloads per device is determined dynamically through a profiling mechanism that takes into account the performance of each device during the previous iteration of a Kernel execution. Therefore it is especially meaningful for iterative algorithms like n-body or k-means.
+Utilizing the configuration, an OpenCL kernel is transformed to a new OpenCL kernel that supports computing the partitioned data. During this compilation step STEPOCL identifies available devices that it can distribute the submitted workloads to. The distribution ratio of workloads per device is determined dynamically through a profiling mechanism that takes into account the performance of each device during the previous iteration of a kernel execution. Therefore it is especially meaningful for iterative algorithms like n-body or k-means.
 
 \subsection*{Fluidic Kernels}
 
-The paper by \citeauthor{fluidic} proposes parallelizing kernels among the CPU and GPU of a machine\cite{fluidic}. They showcase two workloads that benefit rather from either CPU or GPU. In order to execute a Kernel in parallel on both devices, it is launched on the CPU as well as the GPU. While the GPU processes the submitted work-groups from the front, the CPU starts execution from the other end in so-called subkernels. After each finished subkernel, the CPU reports to the GPU the current work-group ID. During execution of each group, the GPU checks whether the current work-group has been processed yet and can therefore identify when it has reached work-groups that have already been computed by the CPU. Due to this mechanism, the overall task is distributed according to the computational capabilities of the participating devices.
+The paper by \citeauthor{fluidic} proposes parallelizing kernels among the CPU and GPU of a machine\cite{fluidic}. They showcase two workloads that benefit rather from either CPU or GPU. In order to execute a kernel in parallel on both devices, it is launched on the CPU as well as the GPU. While the GPU processes the submitted work-groups from the front, the CPU starts execution from the other end in so-called subkernels. After each finished subkernel, the CPU reports to the GPU the current work-group ID. During execution of each group, the GPU checks whether the current work-group has been processed yet and can therefore identify when it has reached work-groups that have already been computed by the CPU. Due to this mechanism, the overall task is distributed according to the computational capabilities of the participating devices.
 
 
 \section{OpenCL and CUDA Cluster Distribution}
@@ -54,7 +54,7 @@ dOpenCL wraps the local OpenCL implementation in their own provided ICD. When th
 	\label{img:dopencl_arch}
 \end{figure}
 
-dOpenCL supports shared cluster environments in which multiple OpenCL programs run concurrently by employing a device manager. It processes the assignment of devices to specific kernels and keeps track of device utilization within the cluster. Thus it ensures that a device is only used by a single Kernel at each point in time.
+dOpenCL supports shared cluster environments in which multiple OpenCL programs run concurrently by employing a device manager. It processes the assignment of devices to specific kernels and keeps track of device utilization within the cluster. Thus it ensures that a device is only used by a single kernel at each point in time.
 
 In their evaluation, \citeauthor{dopencl} show that for workloads with little data dOpenCL performs and scales well. They also compare dOpenCL's ability to transfer data to and from remote devices using Gigabit Ethernet against PCIe bandwidths. In the results, they conclude that dOpenCL reads the data 4.5x slower and writes 50x slower than their measured PCIe connection.
 
@@ -73,16 +73,16 @@ SnuCL represents another library, aside from dOpenCL and VirtualCL, that provide
 Furthermore, SnuCL introduces a virtual global memory, in which buffers may be shared among devices. It manages the consistency among shared buffers and attempts to minimize copy operations throughout the execution in order to save bandwidth. This is achieved by translating the OpenCL code to C, which is then used to identify whether a buffer will be written during execution. Buffers that are not written can therefore remain on a device without the requirement to be copied back to the host.
 
 \subsection*{DistCL}
-DistCL aims at merging multiple GPUs as a single virtual OpenCL device\cite{distcl}. To achieve this it abstracts the devices by representing them as one unified device while handling Kernel distribution and data transfers transparently. In order to enable parallelization of a Kernel, DistCL automatically splits it into multiple kernels with their respective required data, called subranges. In order to know, which data belongs to a subrange, programmers have to supply a meta-function that determines a memory access pattern. Based on the given function, DistCL can only transfer relevant data to a device that executes a subrange.
+DistCL aims at merging multiple GPUs as a single virtual OpenCL device\cite{distcl}. To achieve this it abstracts the devices by representing them as one unified device while handling kernel distribution and data transfers transparently. In order to enable parallelization of a kernel, DistCL automatically splits it into multiple kernels with their respective required data, called subranges. In order to know, which data belongs to a subrange, programmers have to supply a meta-function that determines a memory access pattern. Based on the given function, DistCL can only transfer relevant data to a device that executes a subrange.
 
 \subsection*{MultiCL}
 
-MultiCL is built on top of SnuCL and promises to schedule kernels appropriately among multiple heterogeneous devices in a cluster\cite{multicl}. They offer a round robin approach as well as an autofit mechanism. When queuing a Kernel, a flag can be attached to it, which labels the assumed execution type. The available flags comprise \textit{compute intense}, \textit{memory bound}, \textit{I/O bound} or \textit{iterative}.
+MultiCL is built on top of SnuCL and promises to schedule kernels appropriately among multiple heterogeneous devices in a cluster\cite{multicl}. They offer a round robin approach as well as an autofit mechanism. When queuing a kernel, a flag can be attached to it, which labels the assumed execution type. The available flags comprise \textit{compute intense}, \textit{memory bound}, \textit{I/O bound} or \textit{iterative}.
 
-Their scheduling mechanism is able to employ a static or a dynamic algorithm. In their static scheduling approach, they profile all available devices in regards to memory bandwidth and instruction throughput. Based on these measurements, the best fitting device is selected with respect to the Kernel flag. In their dynamic scheduling algorithm they apply different mechanisms depending on the flag:
+Their scheduling mechanism is able to employ a static or a dynamic algorithm. In their static scheduling approach, they profile all available devices in regards to memory bandwidth and instruction throughput. Based on these measurements, the best fitting device is selected with respect to the kernel flag. In their dynamic scheduling algorithm they apply different mechanisms depending on the flag:
 
 \begin{description}[align=left,leftmargin=0cm]
-\item [Iterative] Cache previous Kernel execution times to find best performing device
+\item [Iterative] Cache previous kernel execution times to find best performing device
 \item [Compute-intensive] Kernels are transformed to smaller minikernels that are profiled on every available device to receive a performance indicator
 \item [I/O-intensive] Extended data caching and minimized transfer operations for distributed executions
 \end{description}
