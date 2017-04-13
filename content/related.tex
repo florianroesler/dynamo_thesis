@@ -18,7 +18,6 @@ One of the main features is the automatic granularity adaption of kernels, which
 
 \subsection*{Static multi-device load balancing for OpenCL}
 \citeauthor{delalama_2012} published an approach for executing a single kernel on multiple devices as well as a load balancing mechanism based on each device's computing capabilities\cite{delalama_2012}.
-
 Instead of splitting the data into smaller parts, they replicate its entirety across the utilized devices and merge the resulting output buffers. The merge process is based on an algorithm that finds buffer elements that underwent write operations during the execution and therefore should be present in the final result.
 
 
@@ -26,14 +25,14 @@ Instead of splitting the data into smaller parts, they replicate its entirety ac
 
 \citeauthor{stepocl} present a framework called STEPOCL, which offers programming multi-device applications using a specifically developed domain specific language\cite{stepocl}. Their promoted features are linear performance scaling with increasing device count as well as comparable performance to manually written OpenCL applications.
 
-For a successful distribution of a kernel across multiple devices STEPOCL requires OpenCL kernels to be submitted with an accompanying configuration that describes the following facts:
+For a successful distribution of a kernel across multiple devices STEPOCL requires OpenCL kernels to be submitted with an accompanying configuration that describes the following information:
 \begin{itemize}
     \item The data layout, which is used to split the data into subdivisions.
     \item A tiling configuration depending on the targeted device types. E.g. specific work-group sizes for CPUs and GPUs.
     \item A meta control flow of the application, which for example allows iterative algorithms.
 \end{itemize}
 
-Utilizing the configuration, an OpenCL kernel is transformed to a new OpenCL kernel that supports computing the partitioned data. During this compilation step STEPOCL identifies available devices that it can distribute the submitted workloads to. The distribution ratio of workloads per device is determined dynamically through a profiling mechanism that takes into account the performance of each device during the previous iteration of a kernel execution. Therefore it is especially meaningful for iterative algorithms like n-body or k-means.
+Utilizing the configuration, an OpenCL kernel is transformed to a new OpenCL kernel that supports computing the partitioned data. During this compilation step STEPOCL identifies available devices that it can distribute the submitted workloads to. The distribution ratio of workloads per device is determined dynamically through a profiling mechanism that takes into account the performance of each device during the previous iteration of a kernel execution. Therefore it is especially meaningful for iterative algorithms, such as n-body or k-means.
 
 \subsection*{Fluidic Kernels}
 
@@ -54,7 +53,7 @@ dOpenCL wraps the local OpenCL implementation in their own provided ICD. When th
 	\label{img:dopencl_arch}
 \end{figure}
 
-dOpenCL supports shared cluster environments in which multiple OpenCL programs run concurrently by employing a device manager. It processes the assignment of devices to specific kernels and keeps track of device utilization within the cluster. Thus it ensures that a device is only used by a single kernel at each point in time.
+dOpenCL supports shared cluster environments, in which multiple OpenCL programs run concurrently, by employing a device manager. It processes the assignment of devices to specific kernels and keeps track of device utilization within the cluster. Thus, it ensures that a device is used only by a single kernel at each point in time.
 
 In their evaluation, \citeauthor{dopencl} show that for workloads with little data dOpenCL performs and scales well. They also compare dOpenCL's ability to transfer data to and from remote devices using Gigabit Ethernet against PCIe bandwidths. In the results, they conclude that dOpenCL reads the data 4.5x slower and writes 50x slower than their measured PCIe connection.
 
@@ -73,7 +72,7 @@ SnuCL represents another library, aside from dOpenCL and VirtualCL, that provide
 Furthermore, SnuCL introduces a virtual global memory, in which buffers may be shared among devices. It manages the consistency among shared buffers and attempts to minimize copy operations throughout the execution in order to save bandwidth. This is achieved by translating the OpenCL code to C, which is then used to identify whether a buffer will be written during execution. Buffers that are not written can therefore remain on a device without the requirement to be copied back to the host.
 
 \subsection*{DistCL}
-DistCL aims at merging multiple GPUs as a single virtual OpenCL device\cite{distcl}. To achieve this it abstracts the devices by representing them as one unified device while handling kernel distribution and data transfers transparently. In order to enable parallelization of a kernel, DistCL automatically splits it into multiple kernels with their respective required data, called subranges. In order to know, which data belongs to a subrange, programmers have to supply a meta-function that determines a memory access pattern. Based on the given function, DistCL can only transfer relevant data to a device that executes a subrange.
+DistCL aims at merging multiple GPUs as a single virtual OpenCL device\cite{distcl}. To achieve this, it abstracts the devices by representing them as one unified device while handling kernel distribution and data transfers transparently. In order to enable parallelization of a kernel, DistCL automatically splits it into multiple kernels with their respective required data, called subranges. In order to know, which data belongs to a subrange, programmers have to supply a meta-function that determines a memory access pattern. Based on the given function, DistCL can transfer only relevant data to a device that executes a subrange.
 
 \subsection*{MultiCL}
 
@@ -89,7 +88,7 @@ Their scheduling mechanism is able to employ a static or a dynamic algorithm. In
 
 \subsection*{rCUDA}
 
-rCUDA aims to reduce the number of GPU accelerators in a cluster by sharing the accelerators across machines within the network\cite{rcuda}. Thus not every machine is required to have a GPU installed. The applied technique comprises API forwarding to execute CUDA commands on the remote server and retrieve the respective result.
+rCUDA aims to reduce the number of GPU accelerators in a cluster by sharing the accelerators across machines within the network\cite{rcuda}. Thus, not every machine is required to have a GPU installed. The applied technique comprises API forwarding to execute CUDA commands on the remote server and retrieve the respective result.
 
 The main focus of the presented evaluation lies on power savings. When reducing the number of accelerators in a considered cluster by 90\%, a 20\% decrease in power consumption could be determined. Still, the authors are aware that this reduction can lead to a significant performance degradation depending on the application requirements within the cluster.
 
