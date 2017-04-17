@@ -2,7 +2,7 @@
 \label{intro}
 At the current state of technology, computers with multiple compute processing units (abbr. CPU) cores are common and even small devices, such as smartphones, employ multi-core architectures\cite{arm_big_little}. Programs that aim at harnessing the full potential of a multi-core computer have to be constructed accordingly.
 
-Considering complex scientific use cases, certain computations may require more computational power than a single machine can provide. Therefore it is mandatory to connect multiple machines to collectively solve a problem. For example, researchers recently created a method to break a widely used cryptographic hash function that requires resources equivalent to more than 6500 CPU-years to compute\cite{shattered}. A single machine at the current level of technology would therefore require too long in order to deliver the desired results. At the same time certain physical factors are limiting further quick advancements concerning CPU performance\cite{end_of_moores_law}\cite{end_of_silicon} so that many problems will still require multiple machines in the future for time efficient computations.
+Considering complex scientific use cases, certain computations may require more computational power than a single machine can provide. Therefore it is mandatory to connect multiple machines to collectively solve a problem. For example, researchers recently created a method to break a widely used cryptographic hash function, requiring resources equivalent to more than 6500 CPU-years to compute\cite{shattered}. A single machine at the current level of technology would therefore require too long in order to deliver the desired results. At the same time certain physical factors are limiting further quick advancements concerning CPU performance\cite{end_of_moores_law}\cite{end_of_silicon} so that many problems will still require multiple machines in the future for time efficient computations.
 
 As of today, there are various available approaches for programmers to distribute workloads across multiple cores of a single machine or among multiple machines grouped as a cluster. Enhancing single threaded code to a multithreaded program that runs on multiple machines in parallel adds several layers of complexity to a project, which may introduce errors and increased maintenance efforts.
 
@@ -14,7 +14,7 @@ While the implementation of distributed algorithms implicates various problems o
 
 \section*{Research Goals}
 \label{goals}
-While a multitude of solutions exists for solving the previously mentioned challenges, many of them only cover partial problems. This research aims at providing a framework to programmers that solves all the given problems by meaningfully reusing existing software. Therefore the general goal is to combine present partial solutions and to add individual functionality where necessary. Thus, the following research goals were defined in order to streamline the development:
+While a multitude of solutions exists for solving the previously mentioned challenges, many of them only cover partial problems. This thesis aims at providing a framework to programmers that solves all the given problems by meaningfully reusing existing software. Therefore the general goal is to combine present partial solutions and to add individual functionality where necessary. Thus, the following research goals are defined in order to streamline the development:
 
 \begin{description}[style=nextline]
     \item [Heterogeneity]
