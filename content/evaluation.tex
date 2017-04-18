@@ -10,7 +10,7 @@ In order to gather insights on the performance of distributing various workloads
 
 \subsection{Single Job Performance}
 
-For a diverse view on the performance of Dynamic OpenCL, two different workloads were chosen based on the amount of data that is required to execute them. Representing data intense jobs the matrix multiplication was selected, which was executed for varying problem sizes. At first sight, it may seem beneficial to divide the matrix multiplication into many partials for a granular parallelization. In fact, a high number of partials may lead to severe performance penalties due to the increased network overhead described in section \ref{matrix_multiplication_workload}. Therefore the number of splits was kept rather low at 6. This allowed clusters that comprised 1 to 3 machines to distribute the partials evenly with a 250\% input data overhead. An even distribution for cluster sizes between 1 and 4 would require a split size of 12, thus increasing the data overhead to 550\%. In the case of two $8000x8000$ matrices, this would account for a 1.536 Gigabyte difference between 6 and 12 splits. While this amount is transferred in under 2 seconds by a 10 Gbit/s connection, the impact on slower connections can diminish any parallelization benefits. Thus, the uneven distribution for cluster sizes greater than 3 was accepted in return for less overhead.
+For a diverse view on the performance of Dynamic OpenCL, two different workloads were chosen based on the amount of data that is required to execute them. Representing data-intensive jobs the matrix multiplication was selected, which was executed for varying problem sizes. At first sight, it may seem beneficial to divide the matrix multiplication into many partials for a granular parallelization. In fact, a high number of partials may lead to severe performance penalties due to the increased network overhead described in section \ref{matrix_multiplication_workload}. Therefore the number of splits was kept rather low at 6. This allowed clusters that comprised 1 to 3 machines to distribute the partials evenly with a 250\% input data overhead. An even distribution for cluster sizes between 1 and 4 would require a split size of 12, thus increasing the data overhead to 550\%. In the case of two $8000x8000$ matrices, this would account for a 1.536 Gigabyte difference between 6 and 12 splits. While this amount is transferred in under 2 seconds by a 10 Gbit/s connection, the impact on slower connections can diminish any parallelization benefits. Thus, the uneven distribution for cluster sizes greater than 3 was accepted in return for less overhead.
 
 While the matrix multiplication was meant to put heavy load on the network, another workload with low data transfer requirements was evaluated. For this, the Mandelbrot set was chosen due to its ability to require long execution times without requiring large data transfers. Again the computations were executed for different problem sizes that scaled up the data sizes even though the absolute increase was much smaller than for the matrix multiplication. As Mandelbrot sets can be divided perfectly without overhead, the number of partials was set to 20.
 
@@ -97,7 +97,7 @@ In the case of the Mandelbrot set the cluster performed much better as shown in 
 	\label{img:local_fully_assisted_benchmark_results}
 \end{figure}
 
-The job suite benchmark, which can be seen in figure \ref{img:local_fully_assisted_benchmark_results}, implicates that the data-intense jobs in it dominate the results for this cluster as the speedup values resemble those of the matrix multiplication. While the second and third machine can introduce a x1.7 and x2.2 speedup, every additional machine can only bring minuscule improvements. Once again more machines congest the network and thus do not benefit the cluster instead of increasing the computational performance.
+The job suite benchmark, which can be seen in figure \ref{img:local_fully_assisted_benchmark_results}, implicates that the data-intensive jobs in it dominate the results for this cluster as the speedup values resemble those of the matrix multiplication. While the second and third machine can introduce a x1.7 and x2.2 speedup, every additional machine can only bring minuscule improvements. Once again more machines congest the network and thus do not benefit the cluster instead of increasing the computational performance.
 
 \subsection{Partly Assisted Computation}
 
@@ -116,7 +116,7 @@ In order to simulate the use case of the partly assisted computation, the initia
 
 Figure \ref{img:parallel_matrix} shows the results for the matrix multiplication. It identifies that using an additional machine can lead to substantial performance benefits. One can observe that with a single additional remote machine for small problem sizes the speedup is already significant with at least x1.65 speedup and reaches around x1.95 for bigger problem sizes. Adding a second remote machine benefits the cluster nearly as much as the first remote machine with speedups rising to around x2.8 for the biggest problem size. Introducing a third and fourth remote machine does not yield significant additional speedups as the number of splits is only six and therefore too low to effectively serve that many machines.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 
 	\includegraphics[width=1.0\textwidth]{images/local_partially_assisted_mandelbrot.pdf}
 	\centering
@@ -124,13 +124,13 @@ Figure \ref{img:parallel_matrix} shows the results for the matrix multiplication
 	\label{img:parallel_mandelbrot}
 \end{figure}
 
-Figure \ref{img:parallel_mandelbrot} reveals that in the case of the Mandelbrot set its low data transfer requirements severely benefit the performance speedup. With every added remote machine the speedup increases close to perfection for all problem sizes until the fourth remote machine is introduced to the cluster. Then the benefits are only minuscule because there are not enough computationally intense splits available to saturate all participating machines efficiently. Thus, the maximum speedup for 3 remote machines is x3.8 while for 4 remote machines it is only lifted to x4.0.
+Figure \ref{img:parallel_mandelbrot} reveals that in the case of the Mandelbrot set its low data transfer requirements severely benefit the performance speedup. With every added remote machine the speedup increases close to perfection for all problem sizes until the fourth remote machine is introduced to the cluster. Then the benefits are only minuscule because there are not enough compute-intensive splits available to saturate all participating machines efficiently. Thus, the maximum speedup for 3 remote machines is x3.8 while for 4 remote machines it is only lifted to x4.0.
 
 
 \subsubsection*{Job Suite Performance}
 \label{job_suite_performance}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 
 	\includegraphics[width=1.0\textwidth]{images/local_partially_assisted_full_benchmark.pdf}
 	\centering
@@ -158,7 +158,7 @@ It is visible that the total network performance reached 480 MBit/s in total for
 
 \subsection*{Single Job Performance}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/hybrid_matrix_multiplication.pdf}
 	\centering
 	\caption{Hybrid Matrix Multiplication}
@@ -168,7 +168,7 @@ It is visible that the total network performance reached 480 MBit/s in total for
 Figure \ref{img:hybrid_matrix_multiplication} displays the results for the matrix multiplications. It is visible that in the case of smaller problem sizes adding cloud devices slows down the process. With increasing sizes, the speedup factor grows but never reaches values that would match the actual hardware capabilities of the c4.8xlarge instances. This is due to the slow connection between both networks, which is much slower than the bus speeds of the c4.8xlarge. Therefore it mainly remains underutilized due to the increased transfer times. For a single cloud instance, the largest problem size causes an unexpected drop in performance, which can be explained by the cloud instance coincidentally picking the last available partial, thus making it run for a substantial timespan while the local instance has already finished all its partials. Adding more instances does not greatly enhance the performance but can provide a maximum speedup of x1.7 for three cloud instances.
 
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/hybrid_mandelbrot_performance.pdf}
 	\centering
 	\caption{Hybrid Mandelbrot Set}
@@ -190,7 +190,7 @@ From the results it can be concluded that the data requirements of a workload ha
 
 Figure \ref{img:hybrid_benchmark_results} shows the results of the benchmark for the hybrid cluster. It is visible that the performance benefits are quite insignificant in relation to the potential computational capability of the c4.8xlarge instance types. Scaling the cluster to two machines with one c4.8xlarge gives a x1.28 performance increase. Adding another c4.8xlarge instance grants an overall x1.55 faster execution compared to the single local machine. When a third instance is introduced, it becomes obvious that a barrier is hit for this benchmark as the speedup compared to two cloud machines is minimal. As shown earlier, the EC2 offers low network bandwidth when accessed by the local cluster. While the performance based scheduler can take these factors into account through its history based approach it still has to run a partial of a job at least once to gain a performance measurement. Therefore it is common that partials with big data transfers are assigned to cloud machines, thus resulting in slow execution times for these kernels.
 
-In order to optimize the assignment of data intense jobs to the appropriate devices, a new scheduler was built that has awareness of the different network locations. For this, all available devices are marked whether they are originating from the local cluster or the cloud provider. The scheduler then ignores the partial order given by the first scheduling tier, e.g.~Round-Robin, and imposes its own order. In fact, it sorts the assignable partials by the amount of data they comprise and assigns them from either end of the list: cloud devices receive partials with little data while local devices are assigned those with the biggest data sizes. Hence, partials should reach cloud devices much faster and the scheduling is not reliant on historical data anymore. With the new scheduler, the benchmark was repeated.
+In order to optimize the assignment of data-intensive jobs to the appropriate devices, a new scheduler was built that has awareness of the different network locations. For this, all available devices are marked whether they are originating from the local cluster or the cloud provider. The scheduler then ignores the partial order given by the first scheduling tier, e.g.~Round-Robin, and imposes its own order. In fact, it sorts the assignable partials by the amount of data they comprise and assigns them from either end of the list: cloud devices receive partials with little data while local devices are assigned those with the biggest data sizes. Hence, partials should reach cloud devices much faster and the scheduling is not reliant on historical data anymore. With the new scheduler, the benchmark was repeated.
 
 \begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/hybrid_full_benchmark_network_based.pdf}
@@ -227,14 +227,15 @@ In this scenario, all utilized resources were located at a cloud service like Am
 
 \subsection{CPU Cluster}
 \subsubsection*{Single Job Performance}
+
+Figure \ref{img:ec2_cpu_matrix_multiplication} shows the performance of the CPU cluster for the matrix multiplications. As soon as a second instance is added to the cluster it is visible that the performance increases significantly but imperfectly as the instances now have to share the network. Therefore perfect scaling is impossible but nevertheless the second instance can provide a maximum speedup of around x1.9 for the largest problem size. The third instance once again reduces the overall computation time, peaking at around x2.8.
+
 \begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/ec2_cpu_matrix_multiplication.pdf}
 	\centering
 	\caption{EC2 Pure Cloud Matrix Multiplication on CPUs}
 	\label{img:ec2_cpu_matrix_multiplication}
 \end{figure}
-
-Figure \ref{img:ec2_cpu_matrix_multiplication} shows the performance of the CPU cluster for the matrix multiplications. As soon as a second instance is added to the cluster it is visible that the performance increases significantly but imperfectly as the instances now have to share the network. Therefore perfect scaling is impossible but nevertheless the second instance can provide a maximum speedup of around x1.9 for the largest problem size. The third instance once again reduces the overall computation time, peaking at around x2.8.
 
 It must be noted that the problem sizes 7800 and 9000 seem to produce an anomaly for this instance as the larger size actually display shorter computation times. This appears to be a particularity of the c4.8xlarge instances as it could not be observed with any other tested hardware and is observable for all cluster sizes.
 
@@ -246,10 +247,10 @@ It must be noted that the problem sizes 7800 and 9000 seem to produce an anomaly
 	\label{img:ec2_cpu_mandelbrot}
 \end{figure}
 
-In figure \ref{img:ec2_cpu_mandelbrot} the performance of the cluster for the Mandelbrot set is displayed. Unlike the matrix multiplications the observed performance improvements are high for all problem sizes and peak at x1.96 for two instances and x2.97 for three instances. Once again the benefits of a 10 Gbit/s connection can be proven even though it is shared among the three participating machines.
+In figure \ref{img:ec2_cpu_mandelbrot} the performance of the cluster for the Mandelbrot set is displayed. Unlike the matrix multiplications, the observed performance improvements are high for all problem sizes and peak at x1.96 for two instances and x2.97 for three instances. Once again the benefits of a 10 Gbit/s connection can be proven even though it is shared among the three participating machines.
 \subsubsection*{Job Suite Performance}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/ec2_cpu_full_benchmark.pdf}
 	\centering
 	\caption{EC2 Pure Cloud Job Suite Benchmark on CPUs}
@@ -261,7 +262,7 @@ Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the CPU cluster
 \subsection{GPU Cluster}
 \subsubsection*{Single Job Performance}
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/ec2_gpu_matrix_multiplication.pdf}
 	\centering
 	\caption{EC2 Pure Cloud Matrix Multiplication on GPUs}
@@ -270,7 +271,7 @@ Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the CPU cluster
 
 In figure \ref{img:ec2_gpu_matrix_multiplication} the benchmark results for the matrix multiplication are displayed. It is visible that there is a clear difference towards the CPU results as the speedup is near perfect for all tested problem sizes. While this may surprise at first, the reason for this effect are the 1 Gbit/s connections of the GPU nodes that can not bottleneck the 10 Gbit/s connection of the management node. Therefore each additional node can introduce the same speedup until the connection of the management node is saturated, which in this case would probably happen after around 10 GPU instances.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/ec2_gpu_mandelbrot.pdf}
 	\centering
 	\caption{EC2 Pure Cloud Mandelbrot Set on GPUs}
@@ -280,12 +281,11 @@ In figure \ref{img:ec2_gpu_matrix_multiplication} the benchmark results for the 
 The Mandelbrot set benchmarks, which can be seen in figure \ref{img:ec2_gpu_mandelbrot}, paint a similar picture. Whether two or three instances are used appears to be irrelevant in terms of additional speedup. Both machines can introduce near perfect performance benefits to the cluster as the data sizes are small and the 1 Gbit/s connections of all participating instances can be fully saturated.
 
 \subsubsection*{Job Suite Performance}
+Figure \ref{img:ec2_gpu_full_benchmark} shows the performance of the GPU cluster for the mixed job suite benchmark. Both the second and third GPU instance introduce a substantial performance increase to the cluster, with a x1.8 speedup and x2.5 speedup respectively.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/ec2_gpu_full_benchmark.pdf}
 	\centering
 	\caption{EC2 Pure Cloud Job Suite Benchmark on GPUs}
 	\label{img:ec2_gpu_full_benchmark}
 \end{figure}
-
-Figure \ref{img:ec2_gpu_full_benchmark} shows the performance of the GPU cluster for the mixed job suite benchmark. Both the second and third GPU instance introduce a substantial performance increase to the cluster, with a x1.8 speedup and x2.5 speedup respectively.

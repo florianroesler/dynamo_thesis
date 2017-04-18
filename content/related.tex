@@ -59,7 +59,7 @@ In their evaluation, \citeauthor{dopencl} show that for workloads with small dat
 
 \subsection*{VirtualCL}
 
-Similarly to dOpenCL, VirtualCL forwards OpenCL API calls to remote machines within a cluster\cite{virtualcl}. It wraps its own ICD around the calls and refers them to running daemons on the remote machines. \citeauthor{virtualcl} evaluate various applications comparing the local versus remote runtimes via VirtualCL. They show that network bandwidth and latency are the main bottlenecks of their solution but that long and compute intense kernels with low data transfers perform well.
+Similarly to dOpenCL, VirtualCL forwards OpenCL API calls to remote machines within a cluster\cite{virtualcl}. It wraps its own ICD around the calls and refers them to running daemons on the remote machines. \citeauthor{virtualcl} evaluate various applications comparing the local versus remote runtimes via VirtualCL. They show that network bandwidth and latency are the main bottlenecks of their solution but that long and compute-intensive kernels with low data transfers perform well.
 
 VirtualCL offers an extension, called SuperCL, which is aimed at reducing network transfers by allowing multiple kernels being submitted to a remote node for serial execution. When these kernels depend on each other, the results are not transferred back and forth but stored in temporary buffers. It also supports more complex use cases like alternating iterative kernels on the same data set.
 
@@ -74,7 +74,7 @@ DistCL aims at merging multiple GPUs as a single virtual OpenCL device\cite{dist
 
 \subsection*{MultiCL}
 
-MultiCL is built on top of SnuCL and promises to schedule kernels appropriately among multiple heterogeneous devices in a cluster\cite{multicl}. It offers a round robin approach as well as an autofit mechanism. When queuing a kernel, a flag can be attached to it, which labels the assumed execution type. The available flags comprise \textit{compute intense}, \textit{memory bound}, \textit{I/O bound} or \textit{iterative}.
+MultiCL is built on top of SnuCL and promises to schedule kernels appropriately among multiple heterogeneous devices in a cluster\cite{multicl}. It offers a round robin approach as well as an autofit mechanism. When queuing a kernel, a flag can be attached to it, which labels the assumed execution type. The available flags comprise \textit{compute-intensive}, \textit{memory bound}, \textit{I/O bound} or \textit{iterative}.
 
 The scheduling mechanism is able to employ a static or a dynamic algorithm. In their static scheduling approach, they profile all available devices in regards to memory bandwidth and instruction throughput. Based on these measurements, the best fitting device is selected with respect to the kernel flag. In their dynamic scheduling algorithm they apply different mechanisms depending on the flag:
 

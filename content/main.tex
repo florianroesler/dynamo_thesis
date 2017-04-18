@@ -275,7 +275,7 @@ While code analysis and simulation do not employ the actual hardware, benchmarks
 
 All of the presented approaches are promising in their respective field of application. Still, the major limiting factor is the apparent focus on a specific hardware architecture, which makes the approaches unsuitable in the context of OpenCL. In order to cover all supported devices, many different models would have to be employed, with each upcoming hardware architecture also introducing new models to Dynamic OpenCL.
 
-With the distribution of partials across a network not only the performance of the execution devices matters but also the speed of the network connection itself. This becomes especially important when utilizing resources from a distant cloud, which inherently can not offer the same bandwidth and latency as a local network. For example, benchmarking the network bandwidth between a local machine of Type B and a low priced EC2 instance only yielded bandwidths of 190 Mbit/s. Still, the EC2 instance was able to transfer data at 800 Mbit/s within the local EC2 cluster. Thus, both machines perform well in their respective local network but the interconnection through the internet becomes the bottleneck. Such inadequate connections could significantly affect data intense kernels where the data transfers might exceed computation times on a slow connection. In certain scenarios, sending such kernels to a high-performance cloud device could be slower than sending it to a low-performance local machine.
+With the distribution of partials across a network not only the performance of the execution devices matters but also the speed of the network connection itself. This becomes especially important when utilizing resources from a distant cloud, which inherently can not offer the same bandwidth and latency as a local network. For example, benchmarking the network bandwidth between a local machine of Type B and a low priced EC2 instance only yielded bandwidths of 190 Mbit/s. Still, the EC2 instance was able to transfer data at 800 Mbit/s within the local EC2 cluster. Thus, both machines perform well in their respective local network but the interconnection through the internet becomes the bottleneck. Such inadequate connections could significantly affect data-intensive kernels where the data transfers might exceed computation times on a slow connection. In certain scenarios, sending such kernels to a high-performance cloud device could be slower than sending it to a low-performance local machine.
 
 A naive approach that combines measuring device performance and networking capabilities is the usage of historical data. With the assumption that jobs are split into many equally sized partials, one can presume the best-suited device of a partial from previous executions on various devices within the cluster. As Dynamic OpenCL schedules only a single partial on a device at a time, partials do not interfere with one another performance wise. Accordingly, multiple executions should yield similar timings. This behavior is portrayed by the benchmarks in section \ref{distribution} and \ref{abstraction} where multiple runs of the same kernel show little standard deviations.
 
@@ -298,27 +298,27 @@ It must be noted that schedulers on this tier may rightfully ignore the order of
 \label{use_cases}
 In the previous sections, the main characteristics of Dynamic OpenCL were explained. The included features make it a viable option for a variety of use cases, being introduced in the following.
 
-\begin{description}[style=nextline]
-	\item[Job Based Library]
-	One use case for the framework is to utilize it as a Java library for a single job, hence keeping management overhead minimal. Programmers can either transform OpenCL code from C or C++ to Dynamic OpenCL or adapt already existing Aparapi code. In theory, an Aparapi kernel can be attached to a Dynamic OpenCL job without any changes. In fact, such a job would not sufficiently utilize the provided partial mechanism. In order to enable parallelization, programmers are mandated to split their jobs into multiple partials to grant speedup potential.
+\subsection*{Job Based Library}
 
-	With the focus on a single job, Dynamic OpenCL can schedule the submitted partials across a given cluster and report back results. As there are no other jobs to interfere, no extensive scheduling is required and all resources can be freely assigned to the job at hand. In the case of an execution that is slower than expected, users may book additional resources from an implemented cloud service and therefore reduce overall execution time in return for higher costs.
+One use case for the framework is to utilize it as a Java library for a single job, hence keeping management overhead minimal. Programmers can either transform OpenCL code from C or C++ to Dynamic OpenCL or adapt already existing Aparapi code. In theory, an Aparapi kernel can be attached to a Dynamic OpenCL job without any changes. In fact, such a job would not sufficiently utilize the provided partial mechanism. In order to enable parallelization, programmers are mandated to split their jobs into multiple partials to grant speedup potential.
 
-	\item[Local Cluster Provider]
+With the focus on a single job, Dynamic OpenCL can schedule the submitted partials across a given cluster and report back results. As there are no other jobs to interfere, no extensive scheduling is required and all resources can be freely assigned to the job at hand. In the case of an execution that is slower than expected, users may book additional resources from an implemented cloud service and therefore reduce overall execution time in return for higher costs.
 
-	Instead of only acting on behalf of a single job, programmers can utilize Dynamic OpenCL to offer a shared platform for users to submit their jobs. This becomes especially meaningful in the light of daily recurring jobs that have to be programmed once. The platform could allow users to submit data to predefined jobs that take care of splitting the data into meaningful partials. Therefore users can profit from parallelization on powerful hardware without having programming knowledge on their own.
-
-	The main limitation of the local cluster provider is its restriction to the available local resources. Therefore the platform can not dynamically book instances from a cloud provider and hence increase the overall capabilities of the cluster. Running a shared platform on a local cluster may require some performance based scheduling in order to optimize resource assignments based on the running jobs.
-
-	\item[Hybrid Cloud Provider]
-	Local clusters may lead to phases of overprovisioning when resource demands by users are low, thus causing costs without any return in computation. In order to offer a more dynamic infrastructure Dynamic OpenCL can be used to provide a baseline of performance through local resources and add devices to the cluster from a cloud service when needed. While cloud devices may be more costly than local resources, they can assist during peak demands and be released afterwards. Hence, the overall costs of using a cloud resource may be lower than operating an underutilized local device.
-
-	Additionally, volatile hardware requirements may lead to high total costs of ownerships. For instance, if a single job per month requires a GPU for its efficient execution, installing a GPU in the local cluster might be costly. Instead, such resources could be employed on demand whenever a job with such requirements is submitted.
-
-	The main drawback of a hybrid cluster is the interconnection between both clusters that may suffer from low bandwidths. Therefore scheduling algorithms should be utilized that take the hybrid infrastructure into account and assign partials accordingly.
-
-	\item[Cloud Cluster Provider]
-	While hybrid clusters unite a static performance baseline with dynamic adjustments based on demand, a completely dynamic infrastructure is also possible. Instead of having computational resources running at all times, cloud clusters may run only the single management node. This central node receives jobs and orders new cloud resources depending on the actual demand. At times of no demand, the management node runs alone, hence producing minimal costs.
+\subsection*{Local Cluster Provider}
 
 
-\end{description}
+Instead of only acting on behalf of a single job, programmers can utilize Dynamic OpenCL to offer a shared platform for users to submit their jobs. This becomes especially meaningful in the light of daily recurring jobs that have to be programmed once. The platform could allow users to submit data to predefined jobs that take care of splitting the data into meaningful partials. Therefore users can profit from parallelization on powerful hardware without having programming knowledge on their own.
+
+The main limitation of the local cluster provider is its restriction to the available local resources. Therefore the platform can not dynamically book instances from a cloud provider and hence increase the overall capabilities of the cluster. Running a shared platform on a local cluster may require some performance based scheduling in order to optimize resource assignments based on the running jobs.
+
+\subsection*{Hybrid Cloud Provider}
+
+Local clusters may lead to phases of overprovisioning when resource demands by users are low, thus causing costs without any return in computation. In order to offer a more dynamic infrastructure Dynamic OpenCL can be used to provide a baseline of performance through local resources and add devices to the cluster from a cloud service when needed. While cloud devices may be more costly than local resources, they can assist during peak demands and be released afterwards. Hence, the overall costs of using a cloud resource may be lower than operating an underutilized local device.
+
+Additionally, volatile hardware requirements may lead to high total costs of ownerships. For instance, if a single job per month requires a GPU for its efficient execution, installing a GPU in the local cluster might be costly. Instead, such resources could be employed on demand whenever a job with such requirements is submitted.
+
+The main drawback of a hybrid cluster is the interconnection between both clusters that may suffer from low bandwidths. Therefore scheduling algorithms should be utilized that take the hybrid infrastructure into account and assign partials accordingly.
+
+\subsection*{Cloud Cluster Provider}
+
+While hybrid clusters unite a static performance baseline with dynamic adjustments based on demand, a completely dynamic infrastructure is also possible. Instead of having computational resources running at all times, cloud clusters may run only the single management node. This central node receives jobs and orders new cloud resources depending on the actual demand. At times of no demand, the management node runs alone, hence producing minimal costs.
