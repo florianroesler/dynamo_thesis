@@ -63,10 +63,11 @@ A possible use case of Dynamic OpenCL is the outsourcing of entire computations 
 The second conceived cluster setup is defined as a \textit{Partially Assisted Computation}. In it, the local cluster grants computational support to a machine that needs to finish a workload faster than it can achieve on its own. This is especially useful when certain deadlines have to be met but a single machine can not match the performance requirements.
 
 \subsection{Fully Assisted Computation}
-In this scenario that covers the fully assisted setup, a single machine acted as the management node that received the given jobs. In the first round, it was connected to a single machine of Type B, which acts as the execution node. The measured times of the benchmarks for the single execution node represent the performance baseline. Subsequently, the measurements were then repeated after adding more machines of the same type one by one. It must be noted that the central management node was of Type A and therefore only provided 1 Gbit/s Ethernet.
+In this scenario that covers the fully assisted setup, a single machine acted as the management node that received the given jobs. In the first round, it was connected to a single machine of Type B, which acted as the execution node. The measured times of the benchmarks for the single execution node represent the performance baseline. Subsequently, the measurements were then repeated after adding more machines of the same type one by one. It must be noted that the central management node was of Type A and therefore only provided 1 Gbit/s Ethernet.
 
 \subsubsection*{Single Job Performance}
 
+The benchmark results for the matrix multiplication in figure \ref{img:fully_assisted_parallel_matrix} display that the performance gains for the given cluster configuration are not on par with the actually available performance. The second remote machine can still yield speedups to around 1.5x for bigger problem sizes while the second machine only raises that value to around 1.7x. From there on every further cluster expansion yields minimal improvements to a maximum of 1.75x and in the case of the last machine even decreases performance. This behavior is the result of the 1 Gbit/s connection being such a narrow bottleneck that can not serve the participating machines adequately and thus keeps their CPUs idle for longer timespans.
 \begin{figure}[!htb]
 
 	\includegraphics[width=1.0\textwidth]{images/local_fully_assisted_matrix.pdf}
@@ -75,7 +76,7 @@ In this scenario that covers the fully assisted setup, a single machine acted as
 	\label{img:fully_assisted_parallel_matrix}
 \end{figure}
 
-The benchmark results for the matrix multiplication in figure \ref{img:fully_assisted_parallel_matrix} display that the performance gains for the given cluster configuration are not on par with the actually available performance. The second remote machine can still yield speedups to around 1.5x for bigger problem sizes while the second machine only raises that value to around 1.7x. From there on every further cluster expansion yields minimal improvements to a maximum of 1.75x and in the case of the last machine even decreases performance. This behavior is the result of the 1 Gbit/s connection being such a narrow bottleneck that can not serve the participating machines adequately and thus keeps their CPUs idle for longer timespans.
+In the case of the Mandelbrot set the cluster performed much better as shown in figure \ref{img:fully_assisted_parallel_mandelbrot}. While the second machine can improve the performance by a near perfect speedup of around 1.9x, even the third and fourth machine can reproduce this behavior with a speedup 2.85x and 3.7x respectively. From the results, it can be inferred that the fifth machine saturates the performance for the given workload with a maximum speedup of 4.0x. A probable explanation for this barrier is the inequality in computational complexity among partials. This causes additional machines to remain idle for the majority of the time as not enough partials with longer computations are available.
 
 \begin{figure}[!htb]
 
@@ -84,9 +85,6 @@ The benchmark results for the matrix multiplication in figure \ref{img:fully_ass
 	\caption{Local Fully Assisted Parallel Mandelbrot}
 	\label{img:fully_assisted_parallel_mandelbrot}
 \end{figure}
-
-In the case of the Mandelbrot set the cluster performed much better as shown in figure \ref{img:fully_assisted_parallel_mandelbrot}. While the second machine can improve the performance by a near perfect speedup of around 1.9x even the third and fourth machine can reproduce this behavior with a speedup 2.85x and 3.7x respectively. From the results, it can be inferred that the fifth machine saturates the performance for the given workload with a maximum speedup of 4.0x. A probable explanation for this barrier is the inequality in computational complexity among splits. This causes additional machines to remain idle for the majority of the time as not enough splits with longer computations are available.
-
 \subsubsection*{Job Suite Performance}
 
 \begin{figure}[!htb]
@@ -143,9 +141,9 @@ The results in figure \ref{img:local_benchmark_results} indicate that employing 
 
 \section{Hybrid Distribution}
 
-After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case is represented by a situation in which available local machines can not provide sufficient performance to match the current requirements. Hence, employing remote cloud resources can be a meaningful option to gain additional computational potential for short periods of time. For this, the cluster initially held a single local machine of Type B. It served as a management node as well as an execution node. Its performance in the benchmarks is used as the baseline for comparisons. Then additional cloud resources were booked from the EC2 and added to the cluster. For the cloud resources, the high-performance instance type c4.8xlarge was chosen, which is described in \ref{cluster_composition}.
+After having discussed the benefits of local workload distributions, it is necessary to evaluate the performance of Dynamic OpenCL when connected to cloud resources. A possible use case is represented by a situation in which available local machines can not provide sufficient performance to match the current requirements. Hence, employing remote cloud resources can be a meaningful option to gain additional computational potential for short periods of time. For this, the cluster initially held a single local machine of Type B. It served as a management node as well as an execution node. Its performance in the benchmarks is used as the baseline for comparisons. Then additional cloud resources were booked from the EC2 and added to the cluster. For the cloud resources, the high-performance instance type c4.8xlarge was chosen, which is described in section \ref{cluster_composition}.
 
-While 10 Gbit/s connections are proven to be a potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster was set in Potsdam and therefore connected to the geographically closest region that was available on the EC2 cloud, which is Frankfurt. In order to prove the presence of a bottleneck, the connection speed between the two locations was measured by using iperf3 and ping from the Type B machine to a cloud machine over a minute. These results were then compared to the measured metrics from within the EC2, which are presented in \ref{cluster_composition}. Although local EC2 bandwidths and latencies could reach promising values of 9.44 Gbit/s and 0.158 ms, accessing the same instances from a network outside the cloud only yielded 169.26 Mbit/s ($\sigma = 11.93$) and 18.9 ms ($\sigma = 0.17$). A reason for the low remote performance numbers could be bottlenecks within the local network that reduced the bandwidth significantly. In order to investigate this theory, three machines of type c4.8xlarge were started. Then the local machine launched iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in figure \ref{img:EC2 Parallel Network Performance}.
+While 10 Gbit/s connections are proven to be a potent solution when distributing among a local cluster, hybrid clusters suffer from far slower bottlenecks in between the two networks. The local cluster was set in Potsdam and therefore connected to the geographically closest region that was available on the EC2 cloud, which is Frankfurt. In order to prove the presence of a bottleneck, the connection speed between the two locations was measured by using iperf3 and ping from the Type B machine to a cloud machine over a minute. These results were then compared to the measured metrics from within the EC2, which are presented in section \ref{cluster_composition}. Although local EC2 bandwidths and latencies could reach promising values of 9.44 Gbit/s and 0.158 ms, accessing the same instances from a network outside the cloud only yielded 169.26 Mbit/s ($\sigma = 11.93$) and 18.9 ms ($\sigma = 0.17$). A reason for the low remote performance numbers could be bottlenecks within the local network that reduced the bandwidth significantly. In order to investigate this theory, three machines of type c4.8xlarge were started. Then the local machine launched iperf3 tests for 60 seconds in parallel to each of the three machines. The results are shown in figure \ref{img:EC2 Parallel Network Performance}.
 
 \begin{figure}[!htb]
 	\includegraphics[width=0.5\textwidth]{images/ec2_stacked_network_performance.pdf}
@@ -201,7 +199,7 @@ In order to optimize the assignment of data-intensive jobs to the appropriate de
 
 Figure \ref{img:hybrid_benchmark_results_network_aware} shows that the new scheduler introduces noticeable benefits compared to the historical performance based approach. While a single c4.8xlarge instance improves the system performance by 1.42x, adding another one leads to a 1.83x increase. Compared to 1.28x and 1.55x respectively for the performance based scheduler, this depicts a significant improvement even though the new mechanism is not sophisticated. When a third c4.8xlarge machine is introduced to the cluster, no further speedup can be achieved. This can be reasoned by a too low number of jobs with small data transfers within the job suite to match the speed of the three cloud instances.
 
-In order to prove that Dynamic OpenCL can deal with a multitude of different small data jobs in parallel, a second job suite was specified. For this, six Mandelbrot sets and four n-body computations of different sizes were used that have average kernel runtimes between 360 milliseconds and 8.5 seconds on a machine of Type B. The data sizes per kernel were in the range between 0.75 megabytes and 7 megabytes. Figure \ref{img:low_data_benchmark_statistics} shows the average runtimes on the Type B machine and data transfer sizes per kernel.
+In order to prove that Dynamic OpenCL can deal with a multitude of different small data jobs in parallel, a second job suite was specified. For this, six Mandelbrot sets and four n-body computations of different sizes were used that have average kernel runtimes between 360 milliseconds and 8.5 seconds on a machine of Type B. The data sizes per kernel were in the range between 0.75 megabytes and 7 megabytes. Figure \ref{img:low_data_benchmark_statistics} shows the average runtimes on the Type B machine and data transfer sizes per partial.
 
 \begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/lowdata_benchmark_statistics.pdf}
@@ -237,7 +235,7 @@ Figure \ref{img:ec2_cpu_matrix_multiplication} shows the performance of the CPU 
 	\label{img:ec2_cpu_matrix_multiplication}
 \end{figure}
 
-It must be noted that the problem sizes 7800 and 9000 seem to produce an anomaly for this instance as the larger size actually display shorter computation times. This appears to be a particularity of the c4.8xlarge instances as it could not be observed with any other tested hardware and is observable for all cluster sizes.
+It must be noted that the problem sizes 7800 and 9000 seem to produce an anomaly for this instance type as the larger size actually leads to shorter computation times. This appears to be a particularity of the c4.8xlarge instances as it could not be observed with any other tested hardware.
 
 
 \begin{figure}[!htb]
@@ -269,7 +267,7 @@ Figure \ref{img:ec2_cpu_full_benchmark} shows the performance of the CPU cluster
 	\label{img:ec2_gpu_matrix_multiplication}
 \end{figure}
 
-In figure \ref{img:ec2_gpu_matrix_multiplication} the benchmark results for the matrix multiplication are displayed. It is visible that there is a clear difference towards the CPU results as the speedup is near perfect for all tested problem sizes. While this may surprise at first, the reason for this effect are the 1 Gbit/s connections of the GPU nodes that can not bottleneck the 10 Gbit/s connection of the management node. Therefore each additional node can introduce the same speedup until the connection of the management node is saturated, which in this case would probably happen after around 10 GPU instances.
+In figure \ref{img:ec2_gpu_matrix_multiplication} the benchmark results for the matrix multiplication are displayed. It is visible that there is a clear difference towards the CPU results as the speedup is nearly linear for all tested problem sizes. While this may surprise at first, the reason for this effect are the 1 Gbit/s connections of the GPU nodes that can not bottleneck the 10 Gbit/s connection of the management node. Therefore each additional node can introduce the same speedup until the connection of the management node is saturated, which in this case would probably happen after around 10 GPU instances.
 
 \begin{figure}[!htb]
 	\includegraphics[width=1.0\textwidth]{images/ec2_gpu_mandelbrot.pdf}
@@ -278,7 +276,7 @@ In figure \ref{img:ec2_gpu_matrix_multiplication} the benchmark results for the 
 	\label{img:ec2_gpu_mandelbrot}
 \end{figure}
 
-The Mandelbrot set benchmarks, which can be seen in figure \ref{img:ec2_gpu_mandelbrot}, paint a similar picture. Whether two or three instances are used appears to be irrelevant in terms of additional speedup. Both machines can introduce near perfect performance benefits to the cluster as the data sizes are small and the 1 Gbit/s connections of all participating instances can be fully saturated.
+The Mandelbrot set benchmarks, which can be seen in figure \ref{img:ec2_gpu_mandelbrot}, paint a similar picture. Whether two or three instances are used appears to be irrelevant in terms of additional speedup. Both machines can introduce almost linear performance benefits to the cluster as the data sizes are small and the 1 Gbit/s connections of all participating instances can be fully saturated.
 
 \subsubsection*{Job Suite Performance}
 Figure \ref{img:ec2_gpu_full_benchmark} shows the performance of the GPU cluster for the mixed job suite benchmark. Both the second and third GPU instance introduce a substantial performance increase to the cluster, with a 1.8x speedup and 2.5x speedup respectively.
