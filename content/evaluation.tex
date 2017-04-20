@@ -63,7 +63,7 @@ A possible use case of Dynamic OpenCL is the outsourcing of entire computations 
 The second conceived cluster setup is defined as a \textit{Partially Assisted Computation}. In it, the local cluster grants computational support to a machine that needs to finish a workload faster than it can achieve on its own. This is especially useful when certain deadlines have to be met but a single machine can not match the performance requirements.
 
 \subsection{Fully Assisted Computation}
-In this scenario that covers the fully assisted setup, a single machine acted as the management node that received the given jobs. In the first round, it was connected to a single machine of Type B, which acted as the execution node. The measured times of the benchmarks for the single execution node represent the performance baseline. Subsequently, the measurements were then repeated after adding more machines of the same type one by one. It must be noted that the central management node was of Type A and therefore only provided 1 Gbit/s Ethernet.
+In this scenario that covers the fully assisted setup, a single machine of Type A acted as the management node that received the given jobs. In the first round, it was connected to a single execution node of Type B. The measured times of the benchmarks for the single execution node represent the performance baseline. Subsequently, the measurements were then repeated after adding more machines of Type B one by one.
 
 \subsubsection*{Single Job Performance}
 
